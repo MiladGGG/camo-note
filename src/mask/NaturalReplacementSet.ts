@@ -3,9 +3,7 @@ import words from './words/natural.json'
 
 class NaturalReplacementSet extends ReplacementSet {
     constructor () {
-        console.log(words)
         super(words);
-
     }
 }
 

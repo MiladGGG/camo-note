@@ -2,11 +2,10 @@ type rawMap =  Record<string, string[]>;
 type WordMap = Map<Number, Set<String>>;
 
 abstract class ReplacementSet {
-    private lengthMap : WordMap;
+    private _lengthMap : WordMap;
 
     constructor (wordSet : rawMap) {
-        this.lengthMap = this.initialiseReplacementSet(wordSet);
-        console.log(this.lengthMap);
+        this._lengthMap = this.initialiseReplacementSet(wordSet);
     }
 
     private initialiseReplacementSet(words : rawMap) : Map<Number,Set<String>> {
@@ -17,6 +16,10 @@ abstract class ReplacementSet {
         });
 
         return newMap
+    }
+
+    get lengthMap() {
+        return this._lengthMap;
     }
 
     //abstract handleNumber(length : number) : string;
