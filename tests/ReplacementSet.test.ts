@@ -1,6 +1,7 @@
 import { describe ,test,it , expect, beforeAll } from "vitest";
 import NaturalReplacementSet from "../src/mask/NaturalReplacementSet";
 import ReplacementSet from "../src/mask/ReplacementSet";
+import TextUtils from "../src/TextUtils";
 
 
 const replacementSet : ReplacementSet = new NaturalReplacementSet();
@@ -29,7 +30,7 @@ describe("intialiseReplacementSet", () => {
 
 
 describe("generateMask", () => {
-    test('Input should be masked with words of same length', () => {
+    test('Word input should be masked with words of same length', () => {
         const input = "I am so MAD";
         const split : string[] = input.split(" ");
 
@@ -39,7 +40,7 @@ describe("generateMask", () => {
         expect(replacement.length).toStrictEqual(split.length);
 
         
-        // Check new words are same length
+        // Assert new words are same length
         for (const index in replacement) {
             const newWord = replacement[index];
             const oldWord = split[index]
@@ -61,11 +62,45 @@ describe("generateMask", () => {
         expect(replacement.length).toStrictEqual(split.length);
 
         
-        // Check new word starts with same symbols
+        // Assert new word starts with same symbols
         for (const index in replacement) {
             const newWord = replacement[index];
 
             expect(newWord.startsWith("@@@?")).toBeTruthy();
+        }
+    })
+
+    test('Raw number input should be masked', () => {
+        const input = "1 123 9999";
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+        
+        // Assert new numbers are different and only contain numbers
+        for (const index in replacement) {
+            const oldNum = split[index];
+            const newNum = replacement[index];
+
+            expect(newNum).not.toStrictEqual(oldNum);
+            expect(TextUtils.isNumber(newNum)).toBeTruthy;
+        }
+
+        console.log(split);
+        console.log(replacement);
+    })
+
+    test('Mixed numbers in input should be masked', () => {
+        const input = "123ABC";
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+        
+        // Assert new number is different and a number
+        for (const index in replacement) {
+            const newNumSubString = replacement[index].substring(0,3);
+            
+            expect(newNumSubString.startsWith("123")).toBeFalsy;
+            expect(TextUtils.isNumber(newNumSubString)).toBeTruthy;
         }
 
         console.log(split);
