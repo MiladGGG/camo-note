@@ -11,14 +11,19 @@ beforeAll(() => {
 
 
 describe("intialiseReplacementSet", () => {
-    test('JSON file should be parsed as WordMap from constructor', () => {
-        const wordSet = replacementSet.lengthMap
+    const wordSet = replacementSet.lengthMap
 
-        console.log(wordSet);
+    test("JSON file should be parsed as WordMap from constructor", () => {
 
         // Assert exists and is type of WordMap
         expect(wordSet).not.toBeNull();
         expect(wordSet).toBeInstanceOf(Map<Number, Set<String>>);
+    })
+
+    test("Each word array size should >= 2 from word JSON files", () => {
+        for(const wordArr of wordSet.values()) {
+            expect(wordArr.length).toBeGreaterThanOrEqual(2);
+        }
     })
 });
 
