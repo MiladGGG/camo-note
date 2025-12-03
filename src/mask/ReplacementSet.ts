@@ -1,3 +1,5 @@
+import TextUtils from "../TextUtils";
+
 type rawMap =  Record<string, string[]>;
 type WordMap = Map<Number, string[]>;
 
@@ -20,16 +22,6 @@ abstract class ReplacementSet {
 
     get lengthMap() {
         return this._lengthMap;
-    }
-
-
-
-    private isLetter(c : string) : boolean {
-        return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z';
-    }
-
-    private isNumber(c : string) : boolean {
-        return c >= '0' && c <= '9';
     }
 
 
@@ -61,7 +53,7 @@ abstract class ReplacementSet {
         let currentSubString = '';
         for (let i = 0; i < stringLength + 1; i++) {
             let c : string = word.charAt(i) ;
-            if (this.isLetter(c)) {
+            if (TextUtils.isLetter(c)) {
                 currentSubString += c;
             } else {
                 if(currentSubString.length == 0){
@@ -89,9 +81,9 @@ abstract class ReplacementSet {
         for (let i = 0; i < input.length; i++) {
             let c : string = input.charAt(i);
 
-            if (this.isLetter(c)){
+            if (TextUtils.isLetter(c)){
                 letterCount++;
-            } else if (this.isNumber(c)){
+            } else if (TextUtils.isNumber(c)){
                 numberCount++;
             } else {
                 symbolCount++;
