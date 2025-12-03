@@ -28,7 +28,7 @@ describe("generateMask", () => {
         const input = "I am so mad";
         const split : string[] = input.split(" ");
 
-        const replacement : string[] = replacementSet.generateMasked(input);
+        const replacement : string[] = replacementSet.generateMasked(split);
 
         // Assert same length array
         expect(replacement.length).toStrictEqual(split.length);
