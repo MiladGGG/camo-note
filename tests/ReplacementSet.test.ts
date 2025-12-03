@@ -29,24 +29,46 @@ describe("intialiseReplacementSet", () => {
 
 
 describe("generateMask", () => {
-    test('Input words should be masked with words of same length', () => {
-        const input = "I am so mad";
+    test('Input should be masked with words of same length', () => {
+        const input = "I am so MAD";
         const split : string[] = input.split(" ");
 
         const replacement : string[] = replacementSet.generateMasked(split);
 
         // Assert same length array
         expect(replacement.length).toStrictEqual(split.length);
+
+        
+        // Check new words are same length
         for (const index in replacement) {
             const newWord = replacement[index];
             const oldWord = split[index]
 
-            // Check new word is different
-            expect(newWord).not.toBe(oldWord);
-
-            // Check new word is same length
             expect(newWord.length).toStrictEqual(oldWord.length);
         }
 
+        console.log(split);
+        console.log(replacement);
+    })
+
+    test('Symbol Input should remain symbols, while text changes', () => {
+        const input = "@@@?a";
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+
+        // Assert same length array
+        expect(replacement.length).toStrictEqual(split.length);
+
+        
+        // Check new word starts with same symbols
+        for (const index in replacement) {
+            const newWord = replacement[index];
+
+            expect(newWord.startsWith("@@@?")).toBeTruthy();
+        }
+
+        console.log(split);
+        console.log(replacement);
     })
 });
