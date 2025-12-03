@@ -23,6 +23,17 @@ abstract class ReplacementSet {
     }
 
 
+
+    private isLetter(c : string) : boolean {
+        return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z';
+    }
+
+    private isNumber(c : string) : boolean {
+        return c >= '0' && c <= '9';
+    }
+
+
+
     private maskWord(word : string) : string {
         const stringLength = word.length
         const targetWords : string[] | undefined = this._lengthMap.get(stringLength);
@@ -31,16 +42,73 @@ abstract class ReplacementSet {
         }
 
         const randomValue = Math.floor(Math.random() * (targetWords.length -1));
-        let randomReplacement = targetWords[randomValue];
+        let randomReplacementArr = Array(targetWords[randomValue]);
 
-        return randomReplacement;
+        // Flip cases accordingly
+        for (let i = 0; i < randomReplacementArr.length; i++) {
+            if (word.charAt(i).toUpperCase() == word.charAt(i)) {
+                randomReplacementArr[0] = randomReplacementArr[0].toUpperCase();
+            }
+        }
+
+        return randomReplacementArr.join("");
     }
 
+    private maskSymbol(word : string) : string {
+        const stringLength = word.length;
+        const replacementArr = new Array(stringLength).fill(" ");
+
+        let currentSubString = '';
+        for (let i = 0; i < stringLength + 1; i++) {
+            let c : string = word.charAt(i) ;
+            if (this.isLetter(c)) {
+                currentSubString += c;
+            } else {
+                if(currentSubString.length == 0){
+                    replacementArr[i] = c;
+                    continue;
+                }
+
+                const replacementSubString = this.maskWord(currentSubString);
+                const subLength = replacementSubString.length
+
+                replacementArr.splice(i - subLength, subLength, ...replacementSubString);
+                i--;
+                currentSubString = '';
+                continue;
+            }
+        }
+        return replacementArr.join("");
+    }
+
+    private runMaskMethod(input : string) : string {
+        let letterCount = 0;
+        let numberCount = 0;
+        let symbolCount = 0;
+
+        for (let i = 0; i < input.length; i++) {
+            let c : string = input.charAt(i);
+
+            if (this.isLetter(c)){
+                letterCount++;
+            } else if (this.isNumber(c)){
+                numberCount++;
+            } else {
+                symbolCount++;
+            }
+        }
+
+        if (letterCount >= 1 && numberCount == 0 && symbolCount == 0){   // Raw Word 
+            return this.maskWord(input);
+        } else {
+            return this.maskSymbol(input);
+        }
+    }
 
     public generateMasked(original : string[]) : string[] {
         const maskedArray = new Array(original.length);
         original.forEach((oldWord, index) => {
-            maskedArray[index] = this.maskWord(oldWord);
+            maskedArray[index] = this.runMaskMethod(oldWord);
         });
 
         return maskedArray;
