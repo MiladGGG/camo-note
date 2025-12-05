@@ -3,8 +3,13 @@ class TextUtils {
         return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z';
     }
 
-    static isNumber(c : string) : boolean {
-        return c >= '0' && c <= '9';
+    static isNumber(str : string) : boolean {
+        for (let c of str){
+            if (!(c >= '0' && c <= '9')){
+                return false;
+            }
+        }
+        return true;
     }
 }
 

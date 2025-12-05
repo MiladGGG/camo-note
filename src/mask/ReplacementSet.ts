@@ -30,22 +30,32 @@ abstract class ReplacementSet {
         const stringLength = word.length
         const targetWords : string[] | undefined = this._lengthMap.get(stringLength);
         if (targetWords === undefined) {
-            return "ERROR_PLACEHOLDER";
+            throw new Error(`There is no mapping for words of length ${stringLength}`);
         }
 
         const randomValue = Math.floor(Math.random() * (targetWords.length -1));
-        let randomReplacementArr = Array(targetWords[randomValue]);
+        const randomReplacementString : string = targetWords[randomValue];
+        const replacementArray : string[] = new Array(stringLength);
 
         // Flip cases accordingly
-        for (let i = 0; i < randomReplacementArr.length; i++) {
-            if (word.charAt(i).toUpperCase() == word.charAt(i)) {
-                randomReplacementArr[0] = randomReplacementArr[0].toUpperCase();
+        for (let i = 0; i < stringLength; i++) {
+            const c = word.charAt(i);
+            if (c.toUpperCase() == c) {
+                replacementArray[i] = randomReplacementString.charAt(i).toUpperCase();
+            } else {
+                replacementArray[i] = randomReplacementString.charAt(i).toLowerCase();
             }
         }
 
-        return randomReplacementArr.join("");
+        return replacementArray.join("");
     }
 
+    private maskNumber(word : string) : string {
+
+        return "123";
+    }
+
+    // @Abc&
     private maskSymbol(word : string) : string {
         const stringLength = word.length;
         const replacementArr = new Array(stringLength).fill(" ");
@@ -53,23 +63,27 @@ abstract class ReplacementSet {
         let currentSubString = '';
         for (let i = 0; i < stringLength + 1; i++) {
             let c : string = word.charAt(i) ;
-            if (TextUtils.isLetter(c)) {
+
+            if (TextUtils.isLetter(c)) {    // Queue Letter
                 currentSubString += c;
-            } else {
-                if(currentSubString.length == 0){
-                    replacementArr[i] = c;
-                    continue;
-                }
-
-                const replacementSubString = this.maskWord(currentSubString);
-                const subLength = replacementSubString.length
-
-                replacementArr.splice(i - subLength, subLength, ...replacementSubString);
-                i--;
-                currentSubString = '';
+                continue;
+            } else if (TextUtils.isNumber(c)) {     // Mask Number
+                replacementArr[i] = c;
                 continue;
             }
+            else {      // Symbol reached
+                replacementArr[i] = c;
+            }
+
+            if(currentSubString.length == 0) { // Process letters
+                continue;
+            }
+            const replacementSubString = this.maskWord(currentSubString);
+            const subLength = replacementSubString.length
+            replacementArr.splice(i - subLength, subLength, ...replacementSubString);
+            currentSubString = '';
         }
+
         return replacementArr.join("");
     }
 
