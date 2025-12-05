@@ -1,5 +1,12 @@
 {
-    "1" : ["i", "a"],
-    "2" : ["hi", "he" , "to", "me", "us"],
-    "3" : ["the", "his", "has", "her", "out", "was", "you"]
+    "1": ["i", "a"],
+    "2": ["hi", "he", "to", "me", "us", "is", "it", "we", "on", "up", "if", "in", "do", "go", "by", "my"],
+    "3": ["the", "his", "has", "her", "out", "was", "you", "for", "not", "all", "one", "get", "see", "new", "who", "let"],
+    "4": ["this", "that", "with", "from", "they", "have", "will", "when", "make", "know", "take", "into", "good"],
+    "5": ["there", "which", "their", "about", "would", "could", "other", "these", "after", "first", "thing", "where"],
+    "6": ["people", "before", "little", "around", "always", "school", "friend", "almost", "system", "change"],
+    "7": ["because", "through", "someone", "without", "another", "nothing", "between", "problem", "country"],
+    "8": ["activity", "business", "computer", "language", "medicine", "mountain"],
+    "9": ["adventure", "beautiful", "challenge", "education", "important", "knowledge", "situation", "telephone", "volunteer", "yesterday","different", "happiness", "important"]
+
 }

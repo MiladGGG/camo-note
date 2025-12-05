@@ -5,6 +5,7 @@ type WordMap = Map<Number, string[]>;
 
 abstract class ReplacementSet {
     private _lengthMap : WordMap;
+    public static MAXWORDLENGTH = 9;
 
     constructor (wordSet : rawMap) {
         this._lengthMap = this.initialiseReplacementSet(wordSet);
@@ -28,12 +29,13 @@ abstract class ReplacementSet {
 
     private maskWord(word : string) : string {
         const stringLength = word.length
-        const targetWords : string[] | undefined = this._lengthMap.get(stringLength);
+        const chooseLength = stringLength <= ReplacementSet.MAXWORDLENGTH ? word.length : ReplacementSet.MAXWORDLENGTH 
+        const targetWords : string[] | undefined = this._lengthMap.get(chooseLength);
         if (targetWords === undefined) {
             throw new Error(`There is no mapping for words of length ${stringLength}`);
         }
 
-        const randomValue = Math.floor(Math.random() * (targetWords.length -1));
+        const randomValue = Math.floor(Math.random() * (targetWords.length));
         const randomReplacementString : string = targetWords[randomValue];
         const replacementArray : string[] = new Array(stringLength);
 
