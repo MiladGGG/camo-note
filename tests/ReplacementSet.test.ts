@@ -2,7 +2,6 @@ import { describe ,test,it , expect, beforeAll } from "vitest";
 import NaturalReplacementSet from "../src/mask/NaturalReplacementSet";
 import ReplacementSet from "../src/mask/ReplacementSet";
 import TextUtils from "../src/TextUtils";
-import { i } from "@vitest/runner/dist/tasks.d-Xu8VaPgy.js";
 
 
 const replacementSet : ReplacementSet = new NaturalReplacementSet();
@@ -44,6 +43,18 @@ describe("generateMask", () => {
 
             expect(newWord.length).toStrictEqual(oldWord.length);
         }
+    })
+
+    test('Word input case should match with masked output', () => {
+        const input = "We aRe so MAD";
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+
+        /^[A-Z][a-z]$/.test(replacement[0]);
+        /^[a-z][A-Z][a-z]$/.test(replacement[1]);
+        /^[a-z]{2}$/.test(replacement[2]);
+        /^[A-Z]{3}$/.test(replacement[3]);
 
         console.log(split);
         console.log(replacement);
@@ -54,19 +65,14 @@ describe("generateMask", () => {
         const split : string[] = input.split(" ");
 
         const replacement : string[] = replacementSet.generateMasked(split);
+        const replacementString = replacement[0];
 
         // Assert same length array
         expect(replacement.length).toStrictEqual(split.length);
 
-        
-        // Assert new word starts and ends with same symbols
-        for (const index in replacement) {
-            const newWord = replacement[index];
-
-            expect(newWord.startsWith("@@@?")).toBeTruthy();
-            expect(newWord.endsWith("!&")).toBeTruthy();
-        }
-
+        // Use regex to assert same structure string
+        const pattern = /^@@@\?[A-Z][a-z]{2}!&$/
+        expect(pattern.test(replacementString)).toBeTruthy();
 
         console.log(split);
         console.log(replacement);
@@ -80,9 +86,10 @@ describe("generateMask", () => {
         
         // Assert new numbers are different and only contain numbers
         for (const index in replacement) {
-            const oldNum = split[index];
-            const newNum = replacement[index];
+            const oldNum : string = split[index];
+            const newNum : string = replacement[index];
 
+            expect(newNum.length).toStrictEqual(oldNum.length);
             expect(newNum).not.toStrictEqual(oldNum);
             expect(TextUtils.isNumber(newNum)).toBeTruthy();
         }
@@ -99,9 +106,12 @@ describe("generateMask", () => {
         const replacementString = replacement[0];
         const replacementNumber = replacementString.substring(0,3);
 
-        expect(replacementString.includes(" ")).toBeFalsy(); // No padded spaces should be present
         expect(replacementString.startsWith("123")).toBeFalsy();
         expect(TextUtils.isNumber(replacementNumber)).toBeTruthy();
+
+        // Use regex to assert same structure string
+        const pattern = /^\d{3}[A-Z]{3}$/
+        expect(pattern.test(replacementString)).toBeTruthy();
     
 
         console.log(split);
