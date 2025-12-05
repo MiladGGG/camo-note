@@ -27,34 +27,45 @@ describe("intialiseReplacementSet", () => {
 
 describe("generateMask", () => {
     test('Word input should be masked with words of same length', () => {
-        const input = "I am so MAD";
-        const split : string[] = input.split(" ");
+        for (let i = 1; i <= ReplacementSet.MAXWORDLENGTH; i++) {
+            const input = 'A'.repeat(i);
+            const split : string[] = input.split(" ");
 
-        const replacement : string[] = replacementSet.generateMasked(split);
-
-        // Assert same length array
-        expect(replacement.length).toStrictEqual(split.length);
-
-        
-        // Assert new words are same length
-        for (const index in replacement) {
-            const newWord = replacement[index];
-            const oldWord = split[index]
-
-            expect(newWord.length).toStrictEqual(oldWord.length);
-        }
+            const replacement : string[] = replacementSet.generateMasked(split);
+            const replacementString : string = replacement[0]; 
+            expect(replacementString.length).toStrictEqual(i);
+        }        
     })
 
-    test('Word input case should match with masked output', () => {
-        const input = "We aRe so MAD";
+    test('Words greater than max length should be masked', () => {
+        const input = "Extraordinary";
         const split : string[] = input.split(" ");
 
         const replacement : string[] = replacementSet.generateMasked(split);
+        const replacementString : string = replacement[0]
 
-        /^[A-Z][a-z]$/.test(replacement[0]);
-        /^[a-z][A-Z][a-z]$/.test(replacement[1]);
-        /^[a-z]{2}$/.test(replacement[2]);
-        /^[A-Z]{3}$/.test(replacement[3]);
+        // Start is uppercase?
+        const pattern = /^[A-Z]/
+        expect(pattern.test(replacementString)).toBeTruthy();
+
+        expect(replacementString.length).toStrictEqual(ReplacementSet.MAXWORDLENGTH);
+
+        console.log(split);
+        console.log(replacement);
+    })
+
+    test('Words greater than max length should be masked', () => {
+        const input = "Supercalifragilisticexpialidocious";
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+        const replacementString : string = replacement[0]
+
+        // Start is uppercase?
+        const pattern = /^[A-Z]/
+        expect(pattern.test(replacementString)).toBeTruthy();
+
+        expect(replacementString.length).toStrictEqual(ReplacementSet.MAXWORDLENGTH);
 
         console.log(split);
         console.log(replacement);
