@@ -4,6 +4,9 @@ class TextUtils {
     }
 
     static isNumber(str : string) : boolean {
+        if (str === ''){
+            return false;
+        }
         for (let c of str){
             if (!(c >= '0' && c <= '9')){
                 return false;

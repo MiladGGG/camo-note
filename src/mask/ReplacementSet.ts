@@ -50,25 +50,27 @@ abstract class ReplacementSet {
         return replacementArray.join("");
     }
 
-    private maskNumber(word : string) : string {
-
-        return "123";
+    private maskNumber(n : string) : string {
+        let randomValue = Math.floor(Math.random() * 9);
+        if (randomValue >= Number(n)){
+            randomValue++;
+        }
+        return String(randomValue);
     }
 
-    // @Abc&
     private maskSymbol(word : string) : string {
         const stringLength = word.length;
         const replacementArr = new Array(stringLength).fill(" ");
 
         let currentSubString = '';
         for (let i = 0; i < stringLength + 1; i++) {
-            let c : string = word.charAt(i) ;
+            let c : string = word.charAt(i);
 
             if (TextUtils.isLetter(c)) {    // Queue Letter
                 currentSubString += c;
                 continue;
             } else if (TextUtils.isNumber(c)) {     // Mask Number
-                replacementArr[i] = c;
+                replacementArr[i] = this.maskNumber(c);
                 continue;
             }
             else {      // Symbol reached
@@ -87,6 +89,7 @@ abstract class ReplacementSet {
         return replacementArr.join("");
     }
 
+    // Chooses and runs proper masking method
     private runMaskMethod(input : string) : string {
         let letterCount = 0;
         let numberCount = 0;
