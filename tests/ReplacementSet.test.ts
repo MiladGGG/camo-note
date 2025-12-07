@@ -49,9 +49,6 @@ describe("generateMask", () => {
         expect(pattern.test(replacementString)).toBeTruthy();
 
         expect(replacementString.length).toStrictEqual(ReplacementSet.MAXWORDLENGTH);
-
-        console.log(split);
-        console.log(replacement);
     })
 
     test('Words greater than max length should be masked', () => {
@@ -66,9 +63,6 @@ describe("generateMask", () => {
         expect(pattern.test(replacementString)).toBeTruthy();
 
         expect(replacementString.length).toStrictEqual(ReplacementSet.MAXWORDLENGTH);
-
-        console.log(split);
-        console.log(replacement);
     })
 
     test('Symbol Input should remain symbols, while text changes', () => {
@@ -84,9 +78,6 @@ describe("generateMask", () => {
         // Use regex to assert same structure string
         const pattern = /^@@@\?[A-Z][a-z]{2}!&$/
         expect(pattern.test(replacementString)).toBeTruthy();
-
-        console.log(split);
-        console.log(replacement);
     })
 
     test('Raw number input should be masked', () => {
@@ -104,9 +95,6 @@ describe("generateMask", () => {
             expect(newNum).not.toStrictEqual(oldNum);
             expect(TextUtils.isNumber(newNum)).toBeTruthy();
         }
-
-        console.log(split);
-        console.log(replacement);
     })
 
     test('Mixed numbers in input should be masked', () => {
@@ -123,9 +111,5 @@ describe("generateMask", () => {
         // Use regex to assert same structure string
         const pattern = /^\d{3}[A-Z]{3}$/
         expect(pattern.test(replacementString)).toBeTruthy();
-    
-
-        console.log(split);
-        console.log(replacement);
     })
 });
