@@ -1,20 +1,21 @@
 import { describe ,test,it , expect, beforeEach } from "vitest";
 import GapBuffer from "../src/buffer/GapBuffer";
 
+
+
 const INITGAPSIZE = 10;
 const GAPGROWSIZE = 5;
 
-
-let gapBuffer : GapBuffer = new GapBuffer(INITGAPSIZE);
+let gapBuffer : GapBuffer;
 
 
 
 describe("GapBuffer test suite", () => {
     beforeEach(() => {
-        gapBuffer = new GapBuffer(INITGAPSIZE);
+        gapBuffer =  new GapBuffer(INITGAPSIZE, GAPGROWSIZE);
     });
-    test("GapBuffer should be created with existing gap", () => {
 
+    test("GapBuffer should be created with existing gap", () => {
         // Assert exists and is type of string array
         const buffer = gapBuffer.buffer;
         expect(buffer).not.toBeNull();
@@ -88,9 +89,9 @@ describe("GapBuffer test suite", () => {
 
     test("Gap should remain within right boundary", () => {
         gapBuffer.insert("ABC");
-        gapBuffer.left();
-        gapBuffer.left();
-        gapBuffer.left();
+        gapBuffer.right();
+        gapBuffer.right();
+        gapBuffer.right();
         gapBuffer.right(); // No room to go right
         const buffer = gapBuffer.buffer;
 
@@ -104,6 +105,18 @@ describe("GapBuffer test suite", () => {
     })
 
     test("Gap should grow after being depleted", () => {
+        gapBuffer.insert("A".repeat(INITGAPSIZE));
+        gapBuffer.insert("A");
+
+        const buffer = gapBuffer.buffer;
+
+        // Assert buffer has grown in size
+        expect(buffer.length).toStrictEqual(INITGAPSIZE + GAPGROWSIZE);
+
+        console.log(buffer)
+    })
+
+    test("Gap should grow after being moved and depleted", () => {
         gapBuffer.insert("A".repeat(INITGAPSIZE));
         gapBuffer.left();
         gapBuffer.insert("A");
@@ -128,12 +141,38 @@ describe("GapBuffer test suite", () => {
     test("GapBuffer should return gap-free string", () => {
         gapBuffer.insert("AD");
         gapBuffer.left();
-        gapBuffer.insert("CD");
+        gapBuffer.insert("BC");
 
         const bufferText = gapBuffer.toString();
 
         expect(bufferText).toBe("ABCD");
+    })
 
-        console.log(bufferText)
+    // XXXXXXX_ABC12345****
+    test("GapBuffer should pass the ultimate insertion test", () => {
+        gapBuffer.right();
+        gapBuffer.insert("BC");
+        gapBuffer.left();
+        gapBuffer.left();
+        gapBuffer.left();
+        gapBuffer.insert("A");
+        gapBuffer.left();
+        gapBuffer.insert("X".repeat(7));
+        gapBuffer.insert("_");
+        gapBuffer.right();
+        gapBuffer.right();
+        gapBuffer.right();
+        gapBuffer.right();
+        gapBuffer.insert("12345");
+
+        const buffer = gapBuffer.buffer;
+
+        // Assert buffer has grown in size twice
+        expect(buffer.length).toStrictEqual(INITGAPSIZE + 2 * GAPGROWSIZE);
+
+        const bufferText = gapBuffer.toString();
+        const expectedString = "XXXXXXX_ABC12345"
+
+        expect(bufferText).toStrictEqual(expectedString);
     })
 });
