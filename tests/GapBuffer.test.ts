@@ -22,8 +22,6 @@ describe("GapBuffer test suite", () => {
         expect(buffer).toBeInstanceOf(Array<string>);
 
         expect(buffer.length).toStrictEqual(INITGAPSIZE);
-
-        console.log(buffer)
     })
 
 
@@ -34,8 +32,6 @@ describe("GapBuffer test suite", () => {
 
         // Assert buffer remains init size 
         expect(buffer.length).toStrictEqual(INITGAPSIZE);
-
-        console.log(buffer)
     })
 
 
@@ -49,8 +45,6 @@ describe("GapBuffer test suite", () => {
         const bufferString = JSON.stringify(buffer)
 
         expect(bufferString).toStrictEqual(charArr);
-
-        console.log(buffer)
     })
 
     test("Gap should shift bi-directionally inside buffer", () => {
@@ -66,8 +60,6 @@ describe("GapBuffer test suite", () => {
         const bufferString = JSON.stringify(buffer)
 
         expect(bufferString).toStrictEqual(charArr);
-
-        console.log(buffer)
     })
 
     test("Gap should remain within left boundary", () => {
@@ -83,8 +75,6 @@ describe("GapBuffer test suite", () => {
         const bufferString = JSON.stringify(buffer)
 
         expect(bufferString).toStrictEqual(charArr);
-
-        console.log(buffer)
     })
 
     test("Gap should remain within right boundary", () => {
@@ -100,8 +90,6 @@ describe("GapBuffer test suite", () => {
         const bufferString = JSON.stringify(buffer)
 
         expect(bufferString).toStrictEqual(charArr);
-
-        console.log(buffer)
     })
 
     test("Gap should grow after being depleted", () => {
@@ -112,8 +100,6 @@ describe("GapBuffer test suite", () => {
 
         // Assert buffer has grown in size
         expect(buffer.length).toStrictEqual(INITGAPSIZE + GAPGROWSIZE);
-
-        console.log(buffer)
     })
 
     test("Gap should grow after being moved and depleted", () => {
@@ -134,8 +120,6 @@ describe("GapBuffer test suite", () => {
         const bufferString = JSON.stringify(buffer)
 
         expect(bufferString).toStrictEqual(charArr);
-
-        console.log(buffer)
     })
 
     test("GapBuffer should return gap-free string", () => {
