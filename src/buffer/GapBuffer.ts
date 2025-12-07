@@ -68,6 +68,10 @@ class GapBuffer {
     get buffer() : string[] {
         return this._buffer;
     }
+    
+    get cursor() : number {
+        return this._gapStartIndex
+    }
 
     public toString() : string {
         return this._buffer.join("");
