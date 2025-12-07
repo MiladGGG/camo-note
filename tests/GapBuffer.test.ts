@@ -1,13 +1,18 @@
-import { describe ,test,it , expect, beforeAll } from "vitest";
+import { describe ,test,it , expect, beforeEach } from "vitest";
 import GapBuffer from "../src/buffer/GapBuffer";
 
+const INITGAPSIZE = 10;
+const GAPGROWSIZE = 5;
 
 
-describe("GapBuffer Initalise", () => {
-    const INITGAPSIZE = 10;
-    const GAPGROWSIZE = 5;
-    const gapBuffer : GapBuffer = new GapBuffer(INITGAPSIZE);
+let gapBuffer : GapBuffer = new GapBuffer(INITGAPSIZE);
 
+
+
+describe("GapBuffer test suite", () => {
+    beforeEach(() => {
+        gapBuffer = new GapBuffer(INITGAPSIZE);
+    });
     test("GapBuffer should be created with existing gap", () => {
 
         // Assert exists and is type of string array
