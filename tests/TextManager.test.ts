@@ -65,18 +65,7 @@ describe("TextManager test suite", () => {
         expect(textManager.length).toStrictEqual(5);
     });
         
-    test("Real text is masked and stored", () => { // Flaky test, has chance to map to same word and fail
-        const inputArr = ["3","Little","Piggies"]
-        textManager.insert(inputArr.join(" "));
-        const realText = textManager.getRealText().split(" ");
-        const maskedText = textManager.getMaskedText().split(" ");
-        for (let i = 0; i < inputArr.length; i++) {
-            const s = inputArr[i];
-            expect(realText[i]).toStrictEqual(s);
-            expect(maskedText[i]).not.toStrictEqual(s);
-            expect(maskedText[i]).toBeTruthy();
-        }
-    });
+
 
 
     test("Same real word maps to same masked word", () => {
@@ -305,5 +294,75 @@ describe("Deletion test suite", () => {
         textManager.delete();
         expect(textManager.realText).toBe("ABC");
         expect(textManager.length).toStrictEqual(1);
+    });
+});
+
+describe("Masking Test suite", () => {
+    beforeEach(() => {
+        textManager = new TextManager();
+    });
+
+    test("Real text is masked and stored", () => {
+        const inputArr = ["3","Litttle","Piggies"]
+        textManager.insert(inputArr.join(" "));
+        const realText = textManager.getRealText().split(" ");
+        const maskedText = textManager.getMaskedText().split(" ");
+        for (let i = 0; i < inputArr.length; i++) {
+            const s = inputArr[i];
+            expect(realText[i]).toStrictEqual(s);
+            expect(maskedText[i]).not.toStrictEqual(s);
+            expect(maskedText[i]).toBeTruthy();
+        }
+    });
+
+
+    test("Masked words affected by delete", () => {
+        textManager.insert("Apple");
+        textManager.delete();
+        textManager.delete();
+
+        expect(textManager.getCursorMaskedText()?.length).toStrictEqual(3);
+    });
+
+    test("Masked words affected by shifted insert", () => {
+        textManager.insert("1ABC");
+        textManager.left();
+        textManager.left();
+        textManager.insert("23");
+
+        const maskedText = textManager.getCursorMaskedText();
+        const pattern = /^\d[A-Z]\d{2}[A-Z]{2}$/
+        expect(pattern.test(maskedText!)).toBeTruthy();
+    });
+
+    test("Masked words affected by word splitting", () => {
+        textManager.insert("123ABC");
+        textManager.left();
+        textManager.left();
+        textManager.left();
+        textManager.insert(" ");
+
+        textManager.left();
+        let maskedText = textManager.getCursorMaskedText();
+        const pattern1 = /^\d{3}$/;
+        
+        expect(pattern1.test(maskedText!)).toBeTruthy();
+
+        textManager.right();
+        textManager.right();
+        maskedText = textManager.getCursorMaskedText();
+        const pattern2 = /^[A-Z]{3}$/;
+        
+        expect(pattern2.test(maskedText!)).toBeTruthy();
+    });
+
+    test("Mixed input is masked", () => {
+        textManager.insert("@ABC123");
+
+        textManager.printDebugState();
+
+        const maskedText = textManager.getCursorMaskedText();
+        const pattern = /^\@[A-Z]{3}\d{3}$/
+        expect(pattern.test(maskedText!)).toBeTruthy();
     });
 });
