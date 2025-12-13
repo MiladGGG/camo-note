@@ -159,4 +159,44 @@ describe("GapBuffer test suite", () => {
 
         expect(bufferText).toStrictEqual(expectedString);
     })
+
+    test("Gap size can be calculated", () => {
+        expect(gapBuffer.gapSize).toStrictEqual(INITGAPSIZE);
+
+        gapBuffer.insert("ABC");
+
+        expect(gapBuffer.gapSize).toStrictEqual(INITGAPSIZE - 3);
+    })
+
+    test("Deleted characters should extend gap", () => {
+        gapBuffer.insert("ABCDEFG");
+        const prevGapSize = gapBuffer.gapSize;
+        const deletions = 5;
+        for (let i = 0; i < deletions; i++)
+        gapBuffer.delete();
+
+        expect(gapBuffer.gapSize).toStrictEqual(prevGapSize + deletions);
+    })
+
+    test("Invalid deletions are ignored", () => {
+        gapBuffer.insert("123");
+        const prevGapSize = gapBuffer.gapSize;
+        const deletions = 25;
+        for (let i = 0; i < deletions; i++)
+        gapBuffer.delete();
+
+        expect(gapBuffer.gapSize).toStrictEqual(prevGapSize + 3);
+    })
+
+
+    test("Deletions function after shifts and insertions", () => {
+        gapBuffer.insert("XABXC");
+        gapBuffer.left();
+        gapBuffer.delete();
+        gapBuffer.left();
+        gapBuffer.left();
+        gapBuffer.delete();
+
+        expect(gapBuffer.toString()).toBe("ABC");
+    })
 });
