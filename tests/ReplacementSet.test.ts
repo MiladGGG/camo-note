@@ -1,7 +1,7 @@
 import { describe ,test,it , expect, beforeAll } from "vitest";
-import NaturalReplacementSet from "../src/backend/mask/NaturalReplacementSet";
-import ReplacementSet from "../src/backend/mask/ReplacementSet";
-import TextUtils from "../src/backend/TextUtils";
+import NaturalReplacementSet from "../src/mask/NaturalReplacementSet";
+import ReplacementSet from "../src/mask/ReplacementSet";
+import TextUtils from "../src/TextUtils";
 
 
 const replacementSet : ReplacementSet = new NaturalReplacementSet();

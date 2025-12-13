@@ -1,5 +1,5 @@
 import { describe ,test,it , expect, beforeEach } from "vitest";
-import TextManager from "../src/backend/buffer/TextManager";
+import TextManager from "../src/buffer/TextManager";
 
 
 let textManager : TextManager;

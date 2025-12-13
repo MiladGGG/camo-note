@@ -1,4 +1,4 @@
-import ReplacementSet from './ReplacementSet.ts'
+import ReplacementSet from './ReplacementSet'
 import words from './words/natural.json'
 
 class NaturalReplacementSet extends ReplacementSet {
