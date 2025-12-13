@@ -1,5 +1,5 @@
 import { describe ,test,it , expect, beforeEach } from "vitest";
-import GapBuffer from "../src/buffer/GapBuffer";
+import GapBuffer from "../src/backend/buffer/GapBuffer";
 
 
 
