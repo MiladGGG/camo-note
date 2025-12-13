@@ -27,9 +27,9 @@ class GapBuffer {
     }
 
 
-    public left() {
+    public left() : boolean {
         if (this._gapStartIndex <= 0) {
-            return;
+            return false;
         }
         const shiftedCharIndex = this._gapStartIndex - 1;
         const shiftedChar : string = this._buffer[shiftedCharIndex];
@@ -38,11 +38,12 @@ class GapBuffer {
 
         this._gapStartIndex--;
         this._gapEndIndex--;
+        return true;
     }
 
-    public right() {
+    public right() : boolean {
         if (this._gapEndIndex >= this._buffer.length - 1) {
-            return;
+            return false;
         }
         const shiftedCharIndex = this._gapEndIndex + 1;
         const shiftedChar : string = this._buffer[shiftedCharIndex];
@@ -51,6 +52,7 @@ class GapBuffer {
 
         this._gapStartIndex++;
         this._gapEndIndex++;
+        return true;
     }
 
     private grow() {
@@ -70,11 +72,20 @@ class GapBuffer {
     }
     
     get cursor() : number {
-        return this._gapStartIndex
+        return this._gapStartIndex;
+    }
+
+    get gapSize() : number {
+        return this._gapEndIndex - this._gapStartIndex + 1;
     }
 
     public toString() : string {
         return this._buffer.join("");
+    }
+
+    public charAt(index : number) : string {
+        let offset = index >= this._gapStartIndex? this.gapSize : 0
+        return this._buffer[index + offset];
     }
 
     public toGapString() : string { // String contains '*' denoting gaps

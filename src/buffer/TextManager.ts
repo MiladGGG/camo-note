@@ -15,15 +15,14 @@ type delimeter = {
 
 type word = text | delimeter;
 
+// For the love of god refactor me 🙏
 class TextManager { // Potentially use generic
-    private _realTextBuffer : GapBuffer;
+    public _realTextBuffer : GapBuffer;
     private _words : word[];
     
     private _cursor : number = 0;
-
     
     private _currentWordIndex : number = 0; // Index for words[]
-    private _innerWordIndex : number = 0; //Index for word inside words[], replaces cursor
     
     private _delimeterSet = new Set([' ', '\n']);
     
@@ -54,24 +53,7 @@ class TextManager { // Potentially use generic
     }
 
 
-    private replaceWord (targetIndex : number, replacementWords : word[]) {
-        const validWordsAmount = this.length;
-        const shiftAmount = replacementWords.length;
-        this.resizeWordArray(validWordsAmount + shiftAmount);
 
-        for (let i = 0; i < validWordsAmount; i++) { // In place shift
-            if (i == targetIndex){
-                continue;
-            }
-            const offset = i >= targetIndex ? shiftAmount - 1 : 0;
-            this._words[i + offset] = this.words[i];
-        }
-
-        for (let i = 0; i < shiftAmount; i++) {
-            this._words[targetIndex + i] = replacementWords[i];
-            
-        }
-    }
 
     private generateWord(realWord : string) : word {
         if (this.isDelimeter(realWord[0])) {
@@ -107,23 +89,51 @@ class TextManager { // Potentially use generic
         return false;
     } 
 
-    private differingCharacters(c : string) : boolean {  // Inserted char is different type to last char
-        if (this._cursor - 1 < 0) {
-            return true;
-        }
-        if (this.isDelimeter(c) !== this.isDelimeter(this.getCursorChar(this._cursor - 1))) { 
-            return true;
+    private deleteWord(targetIndex : number) { // Deletes and shifts
+        this._words.splice(targetIndex, 1);
+    }
+    
+    private mergeWord() : boolean { // Merges eg, ['First*']['Second'] -> ['First*Second'][]
+        const currentWord = this._words[this._currentWordIndex].realWord;
+        const nextWord = this._words[this._currentWordIndex + 1]? this._words[this._currentWordIndex + 1].realWord : null;
+        if (nextWord && this.isDelimeter(currentWord[0]) === this.isDelimeter(nextWord[0])) { // Next word exists and is of same type
+            this._words[this._currentWordIndex].realWord += nextWord;
+            this.deleteWord(this._currentWordIndex + 1);
+            return true; 
         }
 
         return false;
     }
+    
+    private replaceWord (targetIndex : number, replacementWords : word[]) {
+        const validWordsAmount = this.length;
+        const shiftAmount = replacementWords.length;
+        this.resizeWordArray(validWordsAmount + shiftAmount);
 
-    private updateWord(c : string) {
-        const targetWord  = this._words[this._currentWordIndex];
-        const w = targetWord.realWord
-        this._words[this._currentWordIndex] = this.generateWord(w.slice(0, this.getInnerWordIndex()) + c + w.slice(this.getInnerWordIndex(), targetWord.realLength));
-        this._innerWordIndex++;
-        this._words[this._currentWordIndex].realLength += 1;
+
+        
+        for (let i = validWordsAmount -1; i >= 0; i--) { // In place shift
+            if(false && shiftAmount > 1 && replacementWords[1].realWord == 'F') {
+                console.log(`${i}: "${this._words[i].realWord}"`);
+                console.log(this._words);
+            }
+            if (i == targetIndex){
+                continue;
+            }
+            
+            const offset = i >= targetIndex ? shiftAmount - 1 : 0;
+            this._words[i + offset] = this.words[i];
+        }
+
+        for (let i = 0; i < shiftAmount; i++) {
+            this._words[targetIndex + i] = replacementWords[i];    
+        }
+
+        if (shiftAmount == 1) {
+
+        } else if (shiftAmount >= 2 && this._cursor != 0) { // First char is an edge case
+            this._currentWordIndex++;
+        }
     }
 
     private splitWord(c : string) {
@@ -132,7 +142,9 @@ class TextManager { // Potentially use generic
         let leftString = prevWord.slice(0, this.getInnerWordIndex());
         let middleString = c;
         let rightString = prevWord.slice(this.getInnerWordIndex());
-        
+
+
+
         // Merge same type words
         if (this.isDelimeter(leftString) == this.isDelimeter(middleString)) {
             let temp = leftString + middleString;
@@ -144,13 +156,14 @@ class TextManager { // Potentially use generic
             rightString = ''
         }
 
-
         const leftWord = this.generateWord(leftString);
         const middleWord = this.generateWord(middleString);
         const rightWord = this.generateWord(rightString);
 
         let replacementWords = [leftWord, middleWord, rightWord].filter((word) => word.realWord != '')
+
         this.replaceWord(this._currentWordIndex, replacementWords);
+        this.mergeWord();
     }
 
     // Should only work when no words exist
@@ -181,7 +194,7 @@ class TextManager { // Potentially use generic
         return strArr.join("");
     }
 
-    public getMaskedText() : string { // Violating DRY
+    public getMaskedText() : string {
         const totalWords = this.length
         const strArr = new Array(totalWords);
 
@@ -202,32 +215,60 @@ class TextManager { // Potentially use generic
 
     public printDebugState() {
         console.log(this._words);
-        // console.log(`Current word: ${this.getCursorWord().realWord}`);
         console.log(`Current word index: ${this._currentWordIndex}`);
         console.log(`Current inner word index: ${this.getInnerWordIndex()}`);
-        console.log(`Current cursor char: '${this.getCursorChar()}'`);
+        console.log(`Current cursor char: '${this.getCurrentCursorChar()}'`);
         console.log(`Current cursor: ${this._cursor}`);
         console.log(`Real text: \n${this.realGapText}`);
     }
 
     // Finds index of cursor relative to current word. Eg ABC 0123*45 returns 3
     public getInnerWordIndex() : number {
-        let leftShift = 0;
-        const initialChar = this.getCursorChar();
-        const prevType : boolean = this.isDelimeter(initialChar);
+        let count = 0;
 
-        while (this.isDelimeter(this.getCursorChar(this._cursor - leftShift)) == prevType && this._cursor - leftShift > 0) {
-            leftShift++;
+        for (const w of this._words){
+            if (!w) {
+                continue;
+            }
+            count += w.realLength;
+
+            if (count >= this._cursor) {
+                //return (count - this._cursor)
+                return w.realLength - (count - this._cursor)
+            }
         }
-        return leftShift;
+    
+        throw new Error("Could not find current index from cursor");
     }
 
+
+    public getPreviousCursorChar(mode : string) {
+        const char = this._realTextBuffer.buffer[this._realTextBuffer.cursor - 1 + (mode == 'R'? -1: 1)];
+        return char != undefined? char : ''; 
+    }
+
+    public getCurrentCursorChar() {
+        const char = this._realTextBuffer.charAt(this._cursor - 1);
+        return char != undefined? char : ''; 
+    }
+
+
     public getCursorChar(index : number  = this._cursor) : string {
-        return this._realTextBuffer.charAt(index);
+        // return this.getCursorWord().realWord[this.getInnerWordIndex()];
+        const char = this._realTextBuffer.buffer[this._realTextBuffer.cursor - 1 + index];
+        return char != undefined? char : ''; 
     }
 
     public getCursorWord() : word {
         return this._words[this._currentWordIndex];
+    }
+
+    public getCursorMaskedText() : string | null {
+        const targetWord = this._words[this._currentWordIndex];
+        if ("maskedWord" in targetWord) {
+            return targetWord.maskedWord;
+        }
+        return null;
     }
 
     get cursor() : number {
@@ -259,25 +300,29 @@ class TextManager { // Potentially use generic
 
     // Shifts the value of _currentWordIndex given it was previously correct
     private processShift(mode : string) {
-        const prevChar = this.getCursorChar();
+        const prevChar = this.getCurrentCursorChar();
         this._cursor = this._realTextBuffer.cursor;
-        const newChar = this.getCursorChar();
+        const newChar = this.getCurrentCursorChar();
+
 
         if (this.isDelimeter(prevChar) !== this.isDelimeter(newChar)) {
-            if (mode === 'L') {
+            if (mode === 'L' && this._cursor != 0) {
                 this._currentWordIndex -= 1; // New word only if going left
-                this._innerWordIndex = this.getCursorWord().realLength;
-                return;
             }
-            if (mode === 'R') {
+            if (mode === 'R' && this._cursor != 1) {
                 this._currentWordIndex += 1; // New word only if going right
-                this._innerWordIndex = 0;
-                return;
             }
+            return;
         }
-        // No new word, just update index
-        this._innerWordIndex += mode == 'R' ? 1 : -1;
     }
+
+
+
+
+
+
+
+
 
     // Delegated real rext GapBuffer methods
     public insert(str : string) {
