@@ -319,7 +319,23 @@ class TextManager { // Potentially use generic
 
 
 
+    private processDelete() {
+        const targetWord = this._words[this._currentWordIndex];
+        this._cursor = this._realTextBuffer.cursor;
+        
+        if (this.getInnerWordIndex() == 1 && targetWord.realLength == 1){ // Delete last char of word
+            this.deleteWord(this._currentWordIndex);
+            this._currentWordIndex--;
+            this.mergeWord();
+        } else { // Delete char of word
+        const oldString = targetWord.realWord;
+        let newString = oldString.slice(0, this.getInnerWordIndex()) + oldString.slice(this.getInnerWordIndex());
 
+        const newWord = this.generateWord(newString);
+        this._words[this._currentWordIndex] = newWord;
+        }
+
+    }
 
 
 
@@ -339,6 +355,12 @@ class TextManager { // Potentially use generic
     public right() {
         if(this._realTextBuffer.right()){
             this.processShift('R');
+        }
+    }
+
+    public delete() {
+        if(this._realTextBuffer.delete()){
+            this.processDelete();
         }
     }
 
