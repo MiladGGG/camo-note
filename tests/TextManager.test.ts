@@ -252,3 +252,62 @@ describe("TextManager Cursor test suite", () => {
     });
     
 });
+
+
+describe("Deletion test suite", () => {
+    beforeEach(() => {
+        textManager = new TextManager();
+    });
+
+    test("Deleted inital word is replaceable", () => {
+        textManager.insert("A");
+        textManager.delete();
+        textManager.insert("Hello World!");
+        expect(textManager.realText).toBe("Hello World!");
+    });
+
+    test("Deletion modifies word", () => {
+        textManager.insert("XABCXXDX");
+        textManager.delete();
+        textManager.left();
+        textManager.delete();
+        textManager.delete();
+        textManager.left();
+        textManager.left();
+        textManager.left();
+        textManager.delete();
+        expect(textManager.realText).toBe("ABC");
+    });
+
+    test("Deleted word is removed from array", () => {
+        textManager.insert("Hello X");
+        textManager.delete();        
+
+        expect(textManager.realText).toBe("Hello ");
+        expect(textManager.length).toStrictEqual(2);
+    });
+
+    test("Deleted words cause merge", () => {
+        textManager.insert("A B");
+        textManager.left();
+        textManager.delete();        
+
+        expect(textManager.realText).toBe("AB");
+        expect(textManager.length).toStrictEqual(1);
+    });
+
+    test("Invalid deletetions are ignored", () => {
+        textManager.delete();
+        textManager.insert("A");
+        textManager.left();
+        textManager.delete();
+        textManager.right();
+        textManager.insert("BC");
+        textManager.left();
+        textManager.left();
+        textManager.left();
+        textManager.delete();
+        expect(textManager.realText).toBe("ABC");
+        expect(textManager.length).toStrictEqual(1);
+    });
+});
