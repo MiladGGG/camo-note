@@ -55,6 +55,15 @@ class GapBuffer {
         return true;
     }
 
+    public delete() : boolean {
+        if (this._gapStartIndex <= 0) {
+            return false;
+        }
+        this._buffer[this._gapStartIndex -1] = '';
+        this._gapStartIndex--;
+        return true;
+    }
+
     private grow() {
         const newSize = this._buffer.length + this.gapGrowSize;
         let newArr = new Array<string>(newSize).fill("");
