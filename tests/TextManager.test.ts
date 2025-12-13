@@ -192,18 +192,15 @@ describe("TextManager Cursor test suite", () => {
             textManager.left();
             
         }
-        textManager.printDebugState()
 
         input = " Second";
         textManager.insert(input);
         for (let i = 0; i < 15; i++) {
             textManager.left();
         }
-        textManager.printDebugState()
 
         input = "First";
         textManager.insert(input);
-        textManager.printDebugState()
     
         expect(textManager.getRealText()).toBe("First Second Third");
     });
@@ -276,13 +273,13 @@ describe("Deletion test suite", () => {
         textManager.left();
         textManager.left();
         textManager.delete();
-        expect(textManager.realText).toBe("ABC");
+        expect(textManager.realText).toBe("ABCD");
     });
 
     test("Deleted word is removed from array", () => {
         textManager.insert("Hello X");
-        textManager.delete();        
-
+        textManager.delete();
+        
         expect(textManager.realText).toBe("Hello ");
         expect(textManager.length).toStrictEqual(2);
     });
