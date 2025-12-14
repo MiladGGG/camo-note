@@ -63,7 +63,6 @@ abstract class ReplacementSet {
     private maskSymbol(word : string) : string {
         const stringLength = word.length;
         const replacementArr = new Array(stringLength).fill(" ");
-
         let currentSubString = '';
         for (let i = 0; i < stringLength + 1; i++) {
             let c : string = word.charAt(i);
@@ -73,7 +72,6 @@ abstract class ReplacementSet {
                 continue;
             } else if (TextUtils.isNumber(c)) {     // Mask Number
                 replacementArr[i] = this.maskNumber(c);
-                continue;
             }
             else {      // Symbol reached
                 replacementArr[i] = c;
@@ -124,8 +122,6 @@ abstract class ReplacementSet {
 
         return maskedArray;
     }
-
-
 }
 
 export default ReplacementSet; 

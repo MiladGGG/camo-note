@@ -112,4 +112,16 @@ describe("generateMask", () => {
         const pattern = /^\d{3}[A-Z]{3}$/
         expect(pattern.test(replacementString)).toBeTruthy();
     })
+
+    test('Mixed numbers in input should be masked 2', () => {
+        const input = "ABC123"
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+        const replacementString = replacement[0];
+
+        // Use regex to assert same structure string
+        const pattern = /^[A-Z]{3}\d{3}$/
+        expect(pattern.test(replacementString)).toBeTruthy();
+    })
 });
