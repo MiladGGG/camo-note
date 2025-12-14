@@ -28,8 +28,13 @@ abstract class ReplacementSet {
 
 
     private maskWord(word : string) : string {
+        if(word == '') {
+            return '';
+        }
         const stringLength = word.length
-        const chooseLength = stringLength <= ReplacementSet.MAXWORDLENGTH ? word.length : ReplacementSet.MAXWORDLENGTH 
+        const chooseLength = stringLength <= ReplacementSet.MAXWORDLENGTH ? word.length : ReplacementSet.MAXWORDLENGTH
+        const chooseWord = word.slice(0, chooseLength);
+        const leftOver = word.slice(chooseLength);
         const targetWords : string[] | undefined = this._lengthMap.get(chooseLength);
         if (targetWords === undefined) {
             throw new Error(`There is no mapping for words of length ${stringLength}`);
@@ -41,7 +46,7 @@ abstract class ReplacementSet {
 
         // Flip cases accordingly
         for (let i = 0; i < stringLength; i++) {
-            const c = word.charAt(i);
+            const c = chooseWord.charAt(i);
             if (c.toUpperCase() == c) {
                 replacementArray[i] = randomReplacementString.charAt(i).toUpperCase();
             } else {
@@ -49,7 +54,7 @@ abstract class ReplacementSet {
             }
         }
 
-        return replacementArray.join("");
+        return replacementArray.join("") + this.maskWord(leftOver); 
     }
 
     private maskNumber(n : string) : string {

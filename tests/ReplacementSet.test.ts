@@ -37,32 +37,32 @@ describe("generateMask", () => {
         }        
     })
 
-    test('Words greater than max length should be masked', () => {
-        const input = "Extraordinary";
+    test('Words greater than max length should be masked 1', () => {
+        const input = "QwertyuioAbcd";
         const split : string[] = input.split(" ");
 
         const replacement : string[] = replacementSet.generateMasked(split);
         const replacementString : string = replacement[0]
 
-        // Start is uppercase?
-        const pattern = /^[A-Z]/
+        // Word wraps?
+        const pattern = /^[A-Z][a-z]{8}[A-Z][a-z]{3}/
         expect(pattern.test(replacementString)).toBeTruthy();
 
-        expect(replacementString.length).toStrictEqual(ReplacementSet.MAXWORDLENGTH);
+        expect(replacementString.length).toStrictEqual(input.length);
     })
 
-    test('Words greater than max length should be masked', () => {
+    test('Words greater than max length should be masked 2', () => {
         const input = "Supercalifragilisticexpialidocious";
         const split : string[] = input.split(" ");
 
         const replacement : string[] = replacementSet.generateMasked(split);
         const replacementString : string = replacement[0]
 
-        // Start is uppercase?
-        const pattern = /^[A-Z]/
+
+        const pattern = /^[A-Z][a-z]+/
         expect(pattern.test(replacementString)).toBeTruthy();
 
-        expect(replacementString.length).toStrictEqual(ReplacementSet.MAXWORDLENGTH);
+        expect(replacementString.length).toStrictEqual(input.length);
     })
 
     test('Symbol Input should remain symbols, while text changes', () => {
