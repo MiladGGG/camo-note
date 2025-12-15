@@ -97,7 +97,8 @@ class TextManager { // Potentially use generic
         const currentWord = this._words[this._currentWordIndex].realWord;
         const nextWord = this._words[this._currentWordIndex + 1]? this._words[this._currentWordIndex + 1].realWord : null;
         if (nextWord && this.isDelimeter(currentWord[0]) === this.isDelimeter(nextWord[0])) { // Next word exists and is of same type
-            this._words[this._currentWordIndex].realWord += nextWord;
+            const replacementWord = this.generateWord(this._words[this._currentWordIndex].realWord += nextWord);
+            this._words[this._currentWordIndex] = replacementWord;
             this.deleteWord(this._currentWordIndex + 1);
             return true; 
         }
@@ -113,10 +114,6 @@ class TextManager { // Potentially use generic
 
         
         for (let i = validWordsAmount -1; i >= 0; i--) { // In place shift
-            if(false && shiftAmount > 1 && replacementWords[1].realWord == 'F') {
-                console.log(`${i}: "${this._words[i].realWord}"`);
-                console.log(this._words);
-            }
             if (i == targetIndex){
                 continue;
             }
@@ -224,6 +221,9 @@ class TextManager { // Potentially use generic
 
     // Finds index of cursor relative to current word. Eg ABC 0123*45 returns 3
     public getInnerWordIndex() : number {
+        if(this.length == 0) {
+            return 0;
+        }
         let count = 0;
 
         for (const w of this._words){
@@ -321,20 +321,38 @@ class TextManager { // Potentially use generic
 
     private processDelete() {
         const targetWord = this._words[this._currentWordIndex];
-        this._cursor = this._realTextBuffer.cursor;
         
         if (this.getInnerWordIndex() == 1 && targetWord.realLength == 1){ // Delete last char of word
             this.deleteWord(this._currentWordIndex);
-            this._currentWordIndex--;
+            if (this.currentWordIndex != 0) {
+                this._currentWordIndex--;
+            }
+            if (this.length == 0) {
+                this.createNewWord('');
+            }   
+            this._cursor = this._realTextBuffer.cursor;
             this.mergeWord();
-        } else { // Delete char of word
-        const oldString = targetWord.realWord;
-        let newString = oldString.slice(0, this.getInnerWordIndex()) + oldString.slice(this.getInnerWordIndex());
+        } else if (this.getInnerWordIndex() == 1 && targetWord.realLength > 1) { //Edge case eg, "A*AAA"
+            const oldString = targetWord.realWord;
+            let newString = oldString.slice(1);
 
-        const newWord = this.generateWord(newString);
-        this._words[this._currentWordIndex] = newWord;
+            const newWord = this.generateWord(newString);
+            this._words[this._currentWordIndex] = newWord;
+
+            this._cursor = this._realTextBuffer.cursor;
+            if (this.currentWordIndex != 0) {
+                this._currentWordIndex--;
+            }
         }
+        else { // Delete char of word
+            const oldString = targetWord.realWord;
 
+            this._cursor = this._realTextBuffer.cursor;
+            let newString = oldString.slice(0, this.getInnerWordIndex()) + oldString.slice(this.getInnerWordIndex() + 1);
+            
+            const newWord = this.generateWord(newString);
+            this._words[this._currentWordIndex] = newWord;
+        }     
     }
 
 

@@ -321,7 +321,22 @@ describe("Masking Test suite", () => {
         textManager.delete();
         textManager.delete();
 
+
         expect(textManager.getCursorMaskedText()?.length).toStrictEqual(3);
+    });
+
+    test("Masked word removed by delete", () => {
+        textManager.insert("One Two");
+        textManager.delete();
+        textManager.delete();
+        textManager.delete();
+        textManager.insert("A");
+        textManager.delete();
+        textManager.delete();
+
+
+        const pattern = /^[A-Z][a-z]{2}$/;
+        expect(pattern.test(textManager.getMaskedText())).toBeTruthy();
     });
 
     test("Masked words affected by shifted insert", () => {
@@ -359,10 +374,57 @@ describe("Masking Test suite", () => {
     test("Mixed input is masked", () => {
         textManager.insert("@ABC123");
 
-        textManager.printDebugState();
-
         const maskedText = textManager.getCursorMaskedText();
         const pattern = /^\@[A-Z]{3}\d{3}$/
+        expect(pattern.test(maskedText!)).toBeTruthy();
+    });
+
+    test("Deletion causes merge", () => {
+        textManager.insert("AAA BB");
+        textManager.left();
+        textManager.left();
+
+        textManager.delete();
+
+        const maskedText = textManager.getCursorMaskedText();
+        const pattern = /^[A-Z]{5}$/
+        expect(pattern.test(maskedText!)).toBeTruthy();
+    });
+
+    test("Deletion of final char keeps word", () => {
+        textManager.insert("  ABC");
+        textManager.left();
+        
+        textManager.delete();
+
+        textManager.delete();
+        textManager.printDebugState();
+        
+
+        
+        expect(textManager.getRealText()).toBe("  C");
+    });
+
+    test("Char deletion causes word to shift", () => {
+        textManager.insert("  ABC");
+        textManager.left();
+        
+        textManager.delete();
+
+
+        textManager.delete();
+
+        textManager.delete();
+        textManager.delete();
+
+        textManager.printDebugState();
+        
+
+        
+        expect(textManager.getRealText()).toBe("C");
+
+        const maskedText = textManager.getCursorMaskedText();
+        const pattern = /^[A-Z]$/
         expect(pattern.test(maskedText!)).toBeTruthy();
     });
 });
