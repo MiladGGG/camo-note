@@ -5,10 +5,15 @@ type WordMap = Map<Number, string[]>;
 
 abstract class ReplacementSet {
     private _lengthMap : WordMap;
+    
+    private _wordCache : Map<string,string>;
+
     public static MAXWORDLENGTH = 9;
 
     constructor (wordSet : rawMap) {
         this._lengthMap = this.initialiseReplacementSet(wordSet);
+
+        this._wordCache = new Map<string,string>();
     }
 
     private initialiseReplacementSet(words : rawMap) : WordMap {
@@ -31,6 +36,11 @@ abstract class ReplacementSet {
         if(word == '') {
             return '';
         }
+        const cache = this._wordCache.get(word);
+        if (cache != undefined) {
+            return cache;
+        }
+
         const stringLength = word.length
         const chooseLength = stringLength <= ReplacementSet.MAXWORDLENGTH ? word.length : ReplacementSet.MAXWORDLENGTH
         const chooseWord = word.slice(0, chooseLength);
@@ -40,8 +50,17 @@ abstract class ReplacementSet {
             throw new Error(`There is no mapping for words of length ${stringLength}`);
         }
 
-        const randomValue = Math.floor(Math.random() * (targetWords.length));
-        const randomReplacementString : string = targetWords[randomValue];
+
+        let randomValue;
+        let randomReplacementString : string;
+
+        do { // Ensure new word is different
+            randomValue = Math.floor(Math.random() * (targetWords.length));
+            randomReplacementString = targetWords[randomValue];
+        } while (randomReplacementString.toLowerCase() == word.toLowerCase())
+
+
+
         const replacementArray : string[] = new Array(stringLength);
 
         // Flip cases accordingly
@@ -54,7 +73,9 @@ abstract class ReplacementSet {
             }
         }
 
-        return replacementArray.join("") + this.maskWord(leftOver); 
+        const finalMasked = replacementArray.join("") + this.maskWord(leftOver); 
+        this._wordCache.set(word, finalMasked);
+        return finalMasked;
     }
 
     private maskNumber(n : string) : string {
