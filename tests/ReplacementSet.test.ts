@@ -124,4 +124,29 @@ describe("generateMask", () => {
         const pattern = /^[A-Z]{3}\d{3}$/
         expect(pattern.test(replacementString)).toBeTruthy();
     })
+
+    test('Cached words should be stored and returned', () => {
+        const input = "hello hello hello! @@@#hello"
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+
+
+        const expectedMask = replacement[0];
+
+        expect(replacement[1]).toBe(expectedMask);
+        expect(replacement[2]).toBe(expectedMask + '!');
+        expect(replacement[3]).toBe('@@@#' + expectedMask);
+    })
+
+    test('Word is never masked as itself', () => {
+        const input = "a a a hi to be me how you are mad two we my if"
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+
+        replacement.forEach((element, index) => {
+            expect(element).not.toBe(split[index]);
+        });
+    })
 });

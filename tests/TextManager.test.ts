@@ -398,7 +398,6 @@ describe("Masking Test suite", () => {
         textManager.delete();
 
         textManager.delete();
-        textManager.printDebugState();
         
 
         
@@ -416,10 +415,6 @@ describe("Masking Test suite", () => {
 
         textManager.delete();
         textManager.delete();
-
-        textManager.printDebugState();
-        
-
         
         expect(textManager.getRealText()).toBe("C");
 
