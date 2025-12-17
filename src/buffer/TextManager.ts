@@ -72,8 +72,10 @@ class TextManager { // Potentially use generic
     private retrieveMaskedWord(str : string) : string { // Retrieves cached masked word for specific word index
         const realWord = str;
         let maskedWord : string;
+
         if(this._maskedCache.has(realWord)) {
             maskedWord = this._maskedCache.get(realWord)!;
+
         } else {
             maskedWord = this._replacementSet.generateMasked(Array(realWord)).join("");
             this._maskedCache.set(realWord, maskedWord);
@@ -158,7 +160,7 @@ class TextManager { // Potentially use generic
         const rightWord = this.generateWord(rightString);
 
         let replacementWords = [leftWord, middleWord, rightWord].filter((word) => word.realWord != '')
-
+        
         this.replaceWord(this._currentWordIndex, replacementWords);
         this.mergeWord();
     }

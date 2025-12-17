@@ -74,7 +74,9 @@ abstract class ReplacementSet {
         }
 
         const finalMasked = replacementArray.join("") + this.maskWord(leftOver); 
-        this._wordCache.set(word.toLowerCase(), finalMasked);
+        if(leftOver.length == 0){
+            this._wordCache.set(word.toLowerCase(), finalMasked);
+        }
         return finalMasked;
     }
 
@@ -145,7 +147,6 @@ abstract class ReplacementSet {
         original.forEach((oldWord, index) => {
             maskedArray[index] = this.runMaskMethod(oldWord);
         });
-
         return maskedArray;
     }
 }

@@ -45,6 +45,20 @@ describe("Insertion test suite", () => {
         textManager.insert("\nHello Dear\nWorld");
         expect(textManager.length).toStrictEqual(6);
     });
+
+    
+    test('Symbol after long word', () => {
+            let input = "veryverylongword"
+
+            textManager.insert(input);
+            
+
+            input = "@"
+            textManager.insert(input);
+
+            const pattern = /^[a-z]{16}@$/;
+            expect(pattern.test(textManager.getMaskedText())).toBeTruthy();
+    })
 });
 
 

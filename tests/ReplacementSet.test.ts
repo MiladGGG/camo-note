@@ -154,9 +154,12 @@ describe("generateMask", () => {
     test('Non-letter after long word', () => {
         const input = "veryverylongword@"
         const split : string[] = input.split(" ");
+        
+        for (let i = 0; i <= input.length; i++) {
+            replacementSet.generateMasked(input.slice(0, i).split(" "));
+        }
 
         const replacement : string[] = replacementSet.generateMasked(split);
-        console.log(replacement[0]);
         const pattern = /^[a-z]{16}@$/;
         expect(pattern.test(replacement[0])).toBeTruthy();
     })
