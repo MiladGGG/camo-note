@@ -360,6 +360,31 @@ class TextManager { // Potentially use generic
 
 
 
+    public setCursor(index : number) {
+        const offset = index - this._cursor;
+
+        for (let i = 0; i < Math.abs(offset); i++) {
+            if(offset < 0) {
+                this.left();
+            } else if (offset > 0) {
+                this.right()
+            }
+        }
+    }
+
+
+    public deleteRange(start: number, end : number) {
+        if (end < start) {
+            throw new Error("Cannot range delete when end index is greater than star index");
+        }
+        const deleteAmount = end - start;
+        this.setCursor(end);
+        for (let i = 0; i < deleteAmount; i++) {
+            this.delete();
+        }
+    }
+
+
     // Delegated real rext GapBuffer methods
     public insert(str : string) {
         this._realTextBuffer.insert(str);
