@@ -36,10 +36,7 @@ abstract class ReplacementSet {
         if(word == '') {
             return '';
         }
-        const cache = this._wordCache.get(word);
-        if (cache != undefined) {
-            return cache;
-        }
+
 
         const stringLength = word.length
         const chooseLength = stringLength <= ReplacementSet.MAXWORDLENGTH ? word.length : ReplacementSet.MAXWORDLENGTH
@@ -52,13 +49,16 @@ abstract class ReplacementSet {
 
 
         let randomValue;
-        let randomReplacementString : string;
+        let randomReplacementString : string | undefined = this._wordCache.get(word.toLowerCase());;
 
-        do { // Ensure new word is different
-            randomValue = Math.floor(Math.random() * (targetWords.length));
-            randomReplacementString = targetWords[randomValue];
-        } while (randomReplacementString.toLowerCase() == word.toLowerCase())
+        if (randomReplacementString == undefined) {
+            do { // Ensure new word is different
+                randomValue = Math.floor(Math.random() * (targetWords.length));
+                randomReplacementString = targetWords[randomValue];
+            } while (randomReplacementString.toLowerCase() == word.toLowerCase())
 
+        }
+ 
 
 
         const replacementArray : string[] = new Array(stringLength);
@@ -74,7 +74,7 @@ abstract class ReplacementSet {
         }
 
         const finalMasked = replacementArray.join("") + this.maskWord(leftOver); 
-        this._wordCache.set(word, finalMasked);
+        this._wordCache.set(word.toLowerCase(), finalMasked);
         return finalMasked;
     }
 

@@ -126,7 +126,7 @@ describe("generateMask", () => {
     })
 
     test('Cached words should be stored and returned', () => {
-        const input = "hello hello hello! @@@#hello"
+        const input = "hello hello hello! @@@#hello Hello"
         const split : string[] = input.split(" ");
 
         const replacement : string[] = replacementSet.generateMasked(split);
@@ -137,6 +137,7 @@ describe("generateMask", () => {
         expect(replacement[1]).toBe(expectedMask);
         expect(replacement[2]).toBe(expectedMask + '!');
         expect(replacement[3]).toBe('@@@#' + expectedMask);
+        expect(replacement[4].toLowerCase()).toBe(expectedMask);
     })
 
     test('Word is never masked as itself', () => {
@@ -148,5 +149,15 @@ describe("generateMask", () => {
         replacement.forEach((element, index) => {
             expect(element).not.toBe(split[index]);
         });
+    })
+
+    test('Non-letter after long word', () => {
+        const input = "veryverylongword@"
+        const split : string[] = input.split(" ");
+
+        const replacement : string[] = replacementSet.generateMasked(split);
+        console.log(replacement[0]);
+        const pattern = /^[a-z]{16}@$/;
+        expect(pattern.test(replacement[0])).toBeTruthy();
     })
 });
