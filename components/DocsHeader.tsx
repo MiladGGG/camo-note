@@ -1,5 +1,14 @@
 "use client";
 
+type ViewMode = "masked" | "real";
+
+type DocsHeaderProps = {
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+  contextRadius: number;
+  onContextRadiusChange: (radius: number) => void;
+};
+
 const menuItems = [
   { label: "File", options: ["New", "Open", "Make a copy", "Download"] },
   { label: "Edit", options: ["Undo", "Redo", "Cut", "Copy", "Paste"] },
@@ -8,7 +17,12 @@ const menuItems = [
   { label: "Format", options: ["Text", "Paragraph styles"] },
 ];
 
-export default function DocsHeader() {
+export default function DocsHeader({
+  viewMode,
+  onViewModeChange,
+  contextRadius,
+  onContextRadiusChange,
+}: DocsHeaderProps) {
   return (
     <header className="bg-white/95 backdrop-blur flex items-center justify-between px-4 sm:px-8 lg:px-12 py-3 sm:py-4 shadow-sm select-none">
       <div className="flex items-center gap-4 sm:gap-5">
@@ -52,6 +66,36 @@ export default function DocsHeader() {
       </div>
 
       <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-2 mr-1">
+          <button
+            type="button"
+            className="px-3 py-1.5 text-[11px] font-medium rounded-full border border-gray-200 bg-white hover:bg-gray-50"
+            onClick={() =>
+              onViewModeChange(viewMode === "masked" ? "real" : "masked")
+            }
+          >
+            View: {viewMode === "masked" ? "Masked" : "Real"}
+          </button>
+          <div className="flex items-center gap-1 text-[10px] text-gray-500">
+            <span>Context</span>
+            <div className="inline-flex rounded-full border border-gray-200 bg-white overflow-hidden">
+              {[0, 1, 3].map((radius) => (
+                <button
+                  key={radius}
+                  type="button"
+                  className={`px-2 py-0.5 ${
+                    contextRadius === radius
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                  onClick={() => onContextRadiusChange(radius)}
+                >
+                  {radius}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
         <button
           type="button"
           className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border border-blue-100 bg-blue-50 text-blue-700 hover:bg-blue-100"
