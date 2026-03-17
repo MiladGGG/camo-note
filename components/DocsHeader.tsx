@@ -76,7 +76,7 @@ export default function DocsHeader({
           >
             View: {viewMode === "masked" ? "Masked" : "Real"}
           </button>
-          <div className="flex items-center gap-1 text-[10px] text-gray-500">
+          <div className="flex items-center gap-2 text-[10px] text-gray-500">
             <span>Context</span>
             <div className="inline-flex rounded-full border border-gray-200 bg-white overflow-hidden">
               {[0, 1, 3].map((radius) => (
@@ -93,6 +93,17 @@ export default function DocsHeader({
                   {radius}
                 </button>
               ))}
+              <button
+                type="button"
+                className={`px-2 py-0.5 ${
+                  contextRadius === -1
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+                onClick={() => onContextRadiusChange(-1)}
+              >
+                L
+              </button>
             </div>
           </div>
         </div>

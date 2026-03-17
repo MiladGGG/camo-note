@@ -27,8 +27,10 @@ export default function MaskedEditor({
   const editor = useMemo(() => withReact(createEditor()), []);
   const [value, setValue] = useState<Descendant[]>(initialValue);
   const [displayText, setDisplayText] = useState<string>("");
+  const [cursorActive, setCursorActive] = useState<boolean>(true);
   const managerRef = useRef<TextManager | null>(null);
   const previousTextRef = useRef<string>("");
+   const prevCursorActiveRef = useRef<boolean>(true);
 
   function handleChange(newValue: Descendant[]) {
     setValue(newValue);
@@ -95,6 +97,13 @@ export default function MaskedEditor({
       const blockIndex = path[0];
       const inlineIndex = path[1];
 
+      // count all previous blocks plus their newline separators
+      for (let b = 0; b < blockIndex; b++) {
+        const prevBlock = newValue[b];
+        caretIndex += Node.string(prevBlock).length;
+        caretIndex += 1; // the '\n' between blocks
+      }
+
       const block = newValue[blockIndex] as any;
       for (let i = 0; i < inlineIndex; i++) {
         caretIndex += Node.string(block.children[i]).length;
@@ -102,17 +111,30 @@ export default function MaskedEditor({
       caretIndex += offset;
 
       manager.setCursor(caretIndex);
+
+      // // Debug logs
+      // console.log("Slate caret index:", caretIndex);
+      // console.log("TextManager curword:", manager.currentWordIndex);
+      manager.printDebugState();
     }
 
-    const text = computeDisplayText(manager, viewMode, contextRadius);
+
+    const text = computeDisplayText(manager, viewMode, contextRadius, cursorActive);
     setDisplayText(text);
   }
 
   useEffect(() => {
     const manager = managerRef.current;
-    const text = computeDisplayText(manager, viewMode, contextRadius);
-    setDisplayText(text);
-  }, [viewMode, contextRadius]);
+
+    // Only recompute here on the edge where cursorActive just turned false,
+    // to avoid double-updating with the handleChange path.
+    if (prevCursorActiveRef.current && !cursorActive) {
+      const text = computeDisplayText(manager, viewMode, contextRadius, cursorActive);
+      setDisplayText(text);
+    }
+
+    prevCursorActiveRef.current = cursorActive;
+  }, [viewMode, contextRadius, cursorActive]);
 
   return (
     <div className="w-full max-w-4xl my-10 bg-white shadow-sm">
@@ -132,6 +154,13 @@ export default function MaskedEditor({
             autoFocus
             placeholder="Start writing your masked diary..."
             className="focus:outline-none text-transparent caret-black selection:bg-blue-200"
+            onFocus={() => setCursorActive(true)}
+            onBlur={() => setCursorActive(false)}
+            onKeyDown={(e) => {
+              if (e.key === "`") {
+                e.preventDefault();
+              }
+            }}
           />
 
           <div
