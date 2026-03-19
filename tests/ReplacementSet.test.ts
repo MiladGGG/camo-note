@@ -1,11 +1,11 @@
 import { describe ,test,it , expect, beforeAll } from "vitest";
-import NaturalReplacementSet from "../src/mask/NaturalReplacementSet";
 import ReplacementSet from "../src/mask/ReplacementSet";
 import TextUtils from "../src/TextUtils";
+import { loadWordSet } from "../src/mask/WordSets";
 
 
-const replacementSet : ReplacementSet = new NaturalReplacementSet();
-
+const raw = await loadWordSet("natural");
+const replacementSet = new ReplacementSet(raw);
 
 describe("intialiseReplacementSet", () => {
     const wordSet = replacementSet.lengthMap
@@ -27,7 +27,7 @@ describe("intialiseReplacementSet", () => {
 
 describe("generateMask", () => {
     test('Word input should be masked with words of same length', () => {
-        for (let i = 1; i <= ReplacementSet.MAXWORDLENGTH; i++) {
+        for (let i = 1; i <= replacementSet.maxWordLength; i++) {
             const input = 'A'.repeat(i);
             const split : string[] = input.split(" ");
 

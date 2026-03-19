@@ -1,6 +1,5 @@
 import GapBuffer from "./GapBuffer";
 import ReplacementSet from "../mask/ReplacementSet";
-import NaturalReplacementSet from "../mask/NaturalReplacementSet";
 
 type text = {
         realWord : string,
@@ -30,12 +29,12 @@ class TextManager { // Potentially use generic
     private _maskedCache: Map<string, string>;
     private _replacementSet : ReplacementSet;
 
-    constructor (initArraySize : number = 8) {
+    constructor (replacementSet: ReplacementSet, initArraySize : number = 8) {
         this._realTextBuffer = new GapBuffer();
         this._maskedCache = new Map<string, string>();
         this._words = new Array(initArraySize);
 
-        this._replacementSet = new NaturalReplacementSet();
+        this._replacementSet = replacementSet;
         this.createNewWord('');
     }
 
@@ -406,6 +405,19 @@ class TextManager { // Potentially use generic
     public delete() {
         if(this._realTextBuffer.delete()){
             this.processDelete();
+        }
+    }
+
+    public changeReplacementSet(replacementSet: ReplacementSet) {
+        this._replacementSet = replacementSet;
+        this._maskedCache.clear();
+
+        for (const word of this._words) {
+            if (!word) continue; // skip empty slots
+
+            if ("maskedWord" in word) {
+                word.maskedWord = this.retrieveMaskedWord(word.realWord);
+            }
         }
     }
 

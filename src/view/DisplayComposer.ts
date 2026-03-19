@@ -20,6 +20,7 @@ export function computeDisplayText(
   const words = manager.words as any[];
   const cursorIndex = manager.currentWordIndex;
 
+  // Track which logical line each word is on (for L mode)
   const lineByIndex: number[] = [];
   let currentLine = 0;
   for (let i = 0; i < total; i++) {
@@ -34,6 +35,27 @@ export function computeDisplayText(
     }
   }
   const cursorLine = lineByIndex[cursorIndex] ?? 0;
+
+  // Track ordinal positions of text words only (ignore delimiters)
+  const wordOrdinalByIndex: number[] = [];
+  let wordOrdinal = 0;
+  let cursorWordOrdinal = -1;
+  for (let i = 0; i < total; i++) {
+    const w = words[i];
+    if (!w) {
+      continue;
+    }
+    const hasMasked = "maskedWord" in w;
+    if (hasMasked) {
+      wordOrdinalByIndex[i] = wordOrdinal;
+      if (i === cursorIndex) {
+        cursorWordOrdinal = wordOrdinal;
+      }
+      wordOrdinal++;
+    } else {
+      wordOrdinalByIndex[i] = -1;
+    }
+  }
 
   const parts: string[] = [];
 
@@ -63,12 +85,15 @@ export function computeDisplayText(
             useReal = true;
           }
 
-          // and optionally a radius of surrounding words
-          if (
-            contextRadius > 0 &&
-            Math.abs(i - cursorIndex) <= contextRadius
-          ) {
-            useReal = true;
+          // and optionally a radius of surrounding TEXT words (ignore delimiters)
+          if (contextRadius > 0 && cursorWordOrdinal >= 0) {
+            const thisOrdinal = wordOrdinalByIndex[i];
+            if (
+              thisOrdinal >= 0 &&
+              Math.abs(thisOrdinal - cursorWordOrdinal) <= contextRadius
+            ) {
+              useReal = true;
+            }
           }
 
           // special line mode: contextRadius === -1 reveals entire current line

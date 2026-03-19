@@ -1,12 +1,19 @@
 import { describe ,test,it , expect, beforeEach } from "vitest";
 import TextManager from "../src/buffer/TextManager";
-
+import { loadWordSet } from "../src/mask/WordSets";
+import ReplacementSet from "../src/mask/ReplacementSet";
 
 let textManager : TextManager;
 
+async function createTextManager() {
+    const raw = await loadWordSet();
+    const replacementSet = new ReplacementSet(raw);
+    return new TextManager(replacementSet);
+}
+
 describe("Insertion test suite", () => {
-    beforeEach(() => {
-        textManager = new TextManager();
+    beforeEach(async () => {
+        textManager = await createTextManager();
     });
 
     test("Single Character is registered", () => {
@@ -70,8 +77,8 @@ describe("Insertion test suite", () => {
 
 
 describe("TextManager test suite", () => {
-    beforeEach(() => {
-        textManager = new TextManager();
+    beforeEach(async () => {
+        textManager = await createTextManager();
     });
 
     test("All text and delimeters should be stored", () => {
@@ -135,8 +142,8 @@ describe("TextManager test suite", () => {
 
 
 describe("TextManager Cursor test suite", () => {
-    beforeEach(() => {
-        textManager = new TextManager();
+    beforeEach(async () => {
+        textManager = await createTextManager();
     });
     
     test("Word can be retrieved by cursor position", () => {
@@ -254,8 +261,8 @@ describe("TextManager Cursor test suite", () => {
 
 
 describe("Deletion test suite", () => {
-    beforeEach(() => {
-        textManager = new TextManager();
+    beforeEach(async() => {
+        textManager = await createTextManager();
     });
 
     test("Deleted inital word is replaceable", () => {
@@ -312,8 +319,8 @@ describe("Deletion test suite", () => {
 });
 
 describe("Masking Test suite", () => {
-    beforeEach(() => {
-        textManager = new TextManager();
+    beforeEach(async() => {
+        textManager = await createTextManager();
     });
 
     test("Real text is masked and stored", () => {

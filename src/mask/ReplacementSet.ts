@@ -1,22 +1,23 @@
 import TextUtils from "../TextUtils";
+import type { RawMap } from "./WordSets";
 
-type rawMap =  Record<string, string[]>;
-type WordMap = Map<Number, string[]>;
+type WordMap = Map<number, string[]>;
 
-abstract class ReplacementSet {
+class ReplacementSet {
     private _lengthMap : WordMap;
     
     private _wordCache : Map<string,string>;
 
-    public static MAXWORDLENGTH = 9;
+    public maxWordLength : number;
 
-    constructor (wordSet : rawMap) {
+    constructor(wordSet: RawMap) {
         this._lengthMap = this.initialiseReplacementSet(wordSet);
-
-        this._wordCache = new Map<string,string>();
+        this.maxWordLength = Math.max(...Array.from(this._lengthMap.keys()));
+        this._wordCache = new Map<string, string>();
     }
 
-    private initialiseReplacementSet(words : rawMap) : WordMap {
+
+    private initialiseReplacementSet(words : RawMap) : WordMap {
         const newMap : WordMap = new Map();
         let rawWordSet = Object.entries(words); 
         rawWordSet.forEach(([key, value]) => {
@@ -39,7 +40,7 @@ abstract class ReplacementSet {
 
 
         const stringLength = word.length
-        const chooseLength = stringLength <= ReplacementSet.MAXWORDLENGTH ? word.length : ReplacementSet.MAXWORDLENGTH
+        const chooseLength = stringLength <= this.maxWordLength ? word.length : this.maxWordLength
         const chooseWord = word.slice(0, chooseLength);
         const leftOver = word.slice(chooseLength);
         const targetWords : string[] | undefined = this._lengthMap.get(chooseLength);
@@ -151,4 +152,4 @@ abstract class ReplacementSet {
     }
 }
 
-export default ReplacementSet; 
+export default ReplacementSet;  
