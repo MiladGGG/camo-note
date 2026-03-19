@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import MaskedEditor from "@/components/MaskedEditor";
+import SingleMixedEditor from "@/components/SingleMixedEditor";
 import DocsHeader from "@/components/DocsHeader";
 
 type ViewMode = "masked" | "real";
 type MaskStyle = "natural" | "scientific" | "business" | "story" | "pirate";
-type FontStyle = "mono" | "courier" | "menlo";
+type FontStyle = "verdana" | "arial" | "tahoma" | "times" | "georgia" | "courier";
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("masked");
@@ -15,7 +15,7 @@ export default function Home() {
   const [overrideViewMode, setOverrideViewMode] = useState<ViewMode | null>(
     null
   );
-  const [fontStyle, setFontStyle] = useState<FontStyle>("mono");
+  const [fontStyle, setFontStyle] = useState<FontStyle>("arial");
   const [fontSize, setFontSize] = useState<number>(14);
 
   const effectiveViewMode = overrideViewMode ?? viewMode;
@@ -51,7 +51,7 @@ export default function Home() {
       />
 
       <main className="flex-1 overflow flex justify-center">
-        <MaskedEditor
+        <SingleMixedEditor
           viewMode={effectiveViewMode}
           maskStyle={maskStyle}
           contextRadius={contextRadius}

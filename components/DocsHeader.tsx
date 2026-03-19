@@ -2,7 +2,7 @@
 
 type ViewMode = "masked" | "real";
 type MaskStyle = "natural" | "scientific" | "business" | "story" | "pirate";
-type FontStyle = "mono" | "courier" | "menlo";
+type FontStyle = "verdana" | "arial" | "tahoma" | "times" | "georgia" | "courier";
 
 type DocsHeaderProps = {
   viewMode: ViewMode;
@@ -166,11 +166,12 @@ export default function DocsHeader({
               value={fontStyle}
               onChange={(e) => onFontStyleChange(e.target.value as FontStyle)}
             >
-              <option value="mono">Mono</option>
-              <option value="arial">Lucida</option>
               <option value="verdana">Verdana</option>
+              <option value="arial">Arial</option>
               <option value="tahoma">Tahoma</option>
-              <option value="menlo">Menlo</option>
+              <option value="times">Times New Roman</option>
+              <option value="georgia">Georgia</option>
+              <option value="courier">Courier (mono)</option>
             </select>
           </div>
 

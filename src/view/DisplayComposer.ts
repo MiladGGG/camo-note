@@ -2,19 +2,25 @@ import TextManager from "../buffer/TextManager";
 
 export type ViewMode = "masked" | "real";
 
-export function computeDisplayText(
+export type DisplayChunk = {
+  text: string;
+  // True when the chunk is showing real text (as opposed to masked text).
+  isReal: boolean;
+};
+
+export function computeDisplayChunks(
   manager: TextManager | null,
   viewMode: ViewMode,
   contextRadius: number,
   cursorActive: boolean
-): string {
+): DisplayChunk[] {
   if (!manager) {
-    return "";
+    return [];
   }
 
   const total = manager.length;
   if (total === 0) {
-    return "";
+    return [];
   }
 
   const words = manager.words as any[];
@@ -57,7 +63,7 @@ export function computeDisplayText(
     }
   }
 
-  const parts: string[] = [];
+  const chunks: DisplayChunk[] = [];
 
   for (let i = 0; i < total; i++) {
     const w = words[i];
@@ -104,15 +110,26 @@ export function computeDisplayText(
       }
     }
 
-    const segment = useReal
+    const segmentText = useReal
       ? w.realWord
       : hasMasked
-      ? (w.maskedWord as string)
-      : w.realWord;
+        ? (w.maskedWord as string)
+        : w.realWord;
 
-    parts.push(segment);
+    chunks.push({ text: segmentText, isReal: useReal });
   }
 
-  return parts.join("");
+  return chunks;
+}
+
+export function computeDisplayText(
+  manager: TextManager | null,
+  viewMode: ViewMode,
+  contextRadius: number,
+  cursorActive: boolean
+): string {
+  return computeDisplayChunks(manager, viewMode, contextRadius, cursorActive)
+    .map((c) => c.text)
+    .join("");
 }
 
