@@ -129,8 +129,8 @@ export default function DocsHeader({
             <div className="inline-flex rounded-full border border-gray-200 bg-white overflow-hidden">
               {[
                 { label: 1, radius: 0 },
-                { label: 3, radius: 1 },
-                { label: 5, radius: 3 },
+                { label: 3, radius: 2 },
+                { label: 5, radius: 5 },
               ].map(({ label, radius }) => (
                 <button
                   key={label}

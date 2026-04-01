@@ -30,7 +30,7 @@ class TextManager { // Potentially use generic
     private _replacementSet : ReplacementSet;
 
     constructor (replacementSet: ReplacementSet, initArraySize : number = 8) {
-        this._realTextBuffer = new GapBuffer();
+        this._realTextBuffer = new GapBuffer(128,128);
         this._maskedCache = new Map<string, string>();
         this._words = new Array(initArraySize);
 
@@ -270,6 +270,20 @@ class TextManager { // Potentially use generic
             return targetWord.maskedWord;
         }
         return null;
+    }
+
+    // Returns true if two absolute cursor positions are on the same line
+    // in the real text buffer (i.e. no '\n' exists between them).
+    public isSameLine(aCursor: number, bCursor: number): boolean {
+        const start = Math.min(aCursor, bCursor);
+        const end = Math.max(aCursor, bCursor);
+
+        for (let i = start; i < end; i++) {
+            if (this._realTextBuffer.charAt(i) === "\n") {
+                return false;
+            }
+        }
+        return true;
     }
 
     get cursor() : number {

@@ -41,83 +41,29 @@ const initialValue: Descendant[] = [
   },
 ];
 
-type StyledLeaf = { text: string; isReal: boolean };
-type StyledLine = StyledLeaf[];
-
-function chunksToLines(chunks: DisplayChunk[]): StyledLine[] {
-  if (!chunks.length) {
-    return [[{ text: "", isReal: false }]];
-  }
-
-  const lines: StyledLine[] = [];
-  let currentLine: StyledLine = [];
-
-  for (const chunk of chunks) {
-    const parts = chunk.text.split("\n");
-    for (let i = 0; i < parts.length; i++) {
-      currentLine.push({ text: parts[i], isReal: chunk.isReal });
-
-      if (i < parts.length - 1) {
-        lines.push(currentLine);
-        currentLine = [];
-      }
-    }
-  }
-
-  // Ensure at least one line exists (handles docs ending without a newline too).
-  if (lines.length === 0) {
-    lines.push(currentLine.length ? currentLine : [{ text: "", isReal: false }]);
-  } else {
-    lines.push(currentLine.length ? currentLine : [{ text: "", isReal: false }]);
-  }
-
-  return lines;
-}
-
-function chunksToSlateChildren(chunks: DisplayChunk[]): Descendant[] {
-  const lines = chunksToLines(chunks);
+function textToSlateChildren(text: string): Descendant[] {
+  const lines = text.split("\n");
   return lines.map((line) => ({
-    children: line.map((leaf) => ({ text: leaf.text, isReal: leaf.isReal } as any)),
+    children: [{ text: line }],
   })) as Descendant[];
 }
 
-function caretIndexToSelectionFromLines(
-  lines: StyledLine[],
-  caretIndex: number
-): Range {
+function caretIndexToSelection(text: string, caretIndex: number): Range {
+  const lines = text.split("\n");
   let remaining = Math.max(0, caretIndex);
 
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-    const lineLeaves = lines[lineIndex];
-    const lineLen = lineLeaves.reduce((acc, l) => acc + l.text.length, 0);
-
+    const lineLen = lines[lineIndex].length;
     if (remaining <= lineLen) {
-      let leafRemaining = remaining;
-      for (let leafIndex = 0; leafIndex < lineLeaves.length; leafIndex++) {
-        const leafLen = lineLeaves[leafIndex].text.length;
-        if (leafRemaining <= leafLen) {
-          const point = { path: [lineIndex, leafIndex], offset: leafRemaining };
-          return { anchor: point, focus: point } as Range;
-        }
-        leafRemaining -= leafLen;
-      }
-
-      const lastLeafIndex = Math.max(0, lineLeaves.length - 1);
-      const lastOffset = lineLeaves[lastLeafIndex].text.length;
-      const point = { path: [lineIndex, lastLeafIndex], offset: lastOffset };
+      const point = { path: [lineIndex, 0], offset: remaining };
       return { anchor: point, focus: point } as Range;
     }
-
-    // -1 is the '\n' between Slate blocks.
-    remaining -= lineLen + 1;
+    remaining -= lineLen + 1; // '\n'
   }
 
-  // Clamp to the end of the document.
   const lastLineIndex = Math.max(0, lines.length - 1);
-  const lastLineLeaves = lines[lastLineIndex];
-  const lastLeafIndex = Math.max(0, lastLineLeaves.length - 1);
-  const lastOffset = lastLineLeaves[lastLeafIndex].text.length;
-  const point = { path: [lastLineIndex, lastLeafIndex], offset: lastOffset };
+  const lastOffset = lines[lastLineIndex]?.length ?? 0;
+  const point = { path: [lastLineIndex, 0], offset: lastOffset };
   return { anchor: point, focus: point } as Range;
 }
 
@@ -129,17 +75,23 @@ export default function SingleMixedEditor({
   fontSize,
 }: SingleMixedEditorProps) {
   const editor = useMemo(() => withReact(createEditor()), []);
+  const ENABLE_REAL_COLOR = true;
 
   const [cursorActive, setCursorActive] = useState<boolean>(true);
   const [showInspector, setShowInspector] = useState<boolean>(false);
   const [realTextSnapshot, setRealTextSnapshot] = useState<string>("");
   const [maskedTextSnapshot, setMaskedTextSnapshot] = useState<string>("");
+  const [overlayChunks, setOverlayChunks] = useState<DisplayChunk[]>([]);
 
   const managerRef = useRef<TextManager | null>(null);
   const previousDisplayTextRef = useRef<string>("");
   const latestCaretIndexRef = useRef<number>(0);
   const isProjectingRef = useRef<boolean>(false);
   const prevContextRadiusRef = useRef<number>(contextRadius);
+  const projectedTextRef = useRef<string>("");
+  const projectedRealRangesRef = useRef<Array<{ start: number; end: number }>>(
+    []
+  );
 
   const fontFamily =
     fontStyle === "courier"
@@ -165,15 +117,19 @@ export default function SingleMixedEditor({
     setMaskedTextSnapshot(manager.getMaskedText());
   }
 
+  function setProjectionText(projectedChunks: DisplayChunk[]) {
+    projectedTextRef.current = projectedChunks.map((c) => c.text).join("");
+    projectedRealRangesRef.current = [];
+    if (ENABLE_REAL_COLOR) {
+      setOverlayChunks(projectedChunks);
+    } else {
+      setOverlayChunks([]);
+    }
+  }
+
   const renderLeaf = ({ attributes, children, leaf }: RenderLeafProps) => {
-    const isReal = (leaf as any).isReal === true;
     return (
-      <span
-        {...attributes}
-        className={
-          isReal ? "text-[#07074f]" : "text-gray-700 selection:text-gray-700"
-        }
-      >
+      <span {...attributes} className="text-gray-700 selection:text-gray-700">
         {children}
       </span>
     );
@@ -207,20 +163,23 @@ export default function SingleMixedEditor({
     return caretIndex;
   }
 
+  function getCaretIndexNow(): number {
+    return getCaretIndexFromSelection(editor.children as Descendant[]);
+  }
+
   function applyProjection(
     projectedChunks: DisplayChunk[],
     caretIndex: number
   ) {
     // Update Slate editor text to match mixed projected display.
-    // We render "real" segments with custom styling via an `isReal` leaf property.
+    // Styling is applied via `decorate`, so we keep Slate's structure minimal.
     isProjectingRef.current = true;
 
-    const lines = chunksToLines(projectedChunks);
-    const newChildren = lines.map((line) => ({
-      children: line.map((leaf) => ({ text: leaf.text, isReal: leaf.isReal } as any)),
-    })) as Descendant[];
+    setProjectionText(projectedChunks);
+    const projectedText = projectedTextRef.current;
 
-    const newSelection = caretIndexToSelectionFromLines(lines, caretIndex);
+    const newChildren = textToSlateChildren(projectedText);
+    const newSelection = caretIndexToSelection(projectedText, caretIndex);
 
     editor.withoutNormalizing(() => {
       editor.children = newChildren as any;
@@ -229,6 +188,9 @@ export default function SingleMixedEditor({
 
     // Force Slate to notify React.
     editor.onChange();
+
+    // Keep cached caret index in sync for subsequent effects.
+    latestCaretIndexRef.current = caretIndex;
 
     previousDisplayTextRef.current = projectedChunks
       .map((c) => c.text)
@@ -315,6 +277,11 @@ export default function SingleMixedEditor({
     );
     const projectedText = projectedChunks.map((c) => c.text).join("");
 
+    // Always refresh overlay coloring, even if we don't need to re-project text.
+    if (ENABLE_REAL_COLOR) {
+      setOverlayChunks(projectedChunks);
+    }
+
     if (projectedText !== displayText) {
       applyProjection(projectedChunks, latestCaretIndexRef.current);
     } else {
@@ -339,8 +306,12 @@ export default function SingleMixedEditor({
     );
     const projectedText = projectedChunks.map((c) => c.text).join("");
 
+    if (ENABLE_REAL_COLOR) {
+      setOverlayChunks(projectedChunks);
+    }
+
     if (projectedText !== previousDisplayTextRef.current) {
-      applyProjection(projectedChunks, latestCaretIndexRef.current);
+      applyProjection(projectedChunks, getCaretIndexNow());
     }
 
     prevContextRadiusRef.current = contextRadius;
@@ -379,8 +350,12 @@ export default function SingleMixedEditor({
       );
       const projectedText = projectedChunks.map((c) => c.text).join("");
 
+      if (ENABLE_REAL_COLOR) {
+        setOverlayChunks(projectedChunks);
+      }
+
       if (projectedText !== previousDisplayTextRef.current) {
-        applyProjection(projectedChunks, latestCaretIndexRef.current);
+        applyProjection(projectedChunks, getCaretIndexNow());
       }
 
       refreshFeatureSnapshots();
@@ -417,6 +392,22 @@ export default function SingleMixedEditor({
               }
             }}
           />
+
+          {ENABLE_REAL_COLOR && overlayChunks.length > 0 && (
+            <div
+              className="pointer-events-none absolute inset-0 p-12 whitespace-pre-wrap leading-relaxed"
+              style={{ fontFamily, fontSize }}
+            >
+              {overlayChunks.map((chunk, idx) => (
+                <span
+                  key={idx}
+                  className={chunk.isReal ? "text-[#783204]" : "text-transparent"}
+                >
+                  {chunk.text}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </Slate>
 
