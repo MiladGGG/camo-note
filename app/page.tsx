@@ -1,24 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import SingleMixedEditor from "@/components/SingleMixedEditor";
 import DocsHeader from "@/components/DocsHeader";
+import { EditorUiProvider, useEditorUi } from "@/components/editor/EditorUiContext";
+import { EditorTextProvider } from "@/components/editor/EditorTextContext";
+import { Toaster } from "react-hot-toast";
 
-type ViewMode = "masked" | "real";
-type MaskStyle = "natural" | "scientific" | "business" | "story" | "pirate";
-type FontStyle = "verdana" | "arial" | "tahoma" | "times" | "georgia" | "courier";
-
-export default function Home() {
-  const [viewMode, setViewMode] = useState<ViewMode>("masked");
-  const [contextRadius, setContextRadius] = useState<number>(0);
-  const [maskStyle, setMaskStyle] = useState<MaskStyle>("natural");
-  const [overrideViewMode, setOverrideViewMode] = useState<ViewMode | null>(
-    null
-  );
-  const [fontStyle, setFontStyle] = useState<FontStyle>("arial");
-  const [fontSize, setFontSize] = useState<number>(14);
-
-  const effectiveViewMode = overrideViewMode ?? viewMode;
+function HomeContent() {
+  const { overrideViewMode, setOverrideViewMode } = useEditorUi();
 
   return (
     <div
@@ -37,28 +26,22 @@ export default function Home() {
       }}
       tabIndex={0}
     >
-      <DocsHeader
-        viewMode={effectiveViewMode}
-        onViewModeChange={setViewMode}
-        maskStyle={maskStyle}
-        onMaskStyleChange={setMaskStyle}
-        contextRadius={contextRadius}
-        onContextRadiusChange={setContextRadius}
-        fontStyle={fontStyle}
-        onFontStyleChange={setFontStyle}
-        fontSize={fontSize}
-        onFontSizeChange={setFontSize}
-      />
+      <DocsHeader />
 
       <main className="flex-1 overflow flex justify-center">
-        <SingleMixedEditor
-          viewMode={effectiveViewMode}
-          maskStyle={maskStyle}
-          contextRadius={contextRadius}
-          fontStyle={fontStyle}
-          fontSize={fontSize}
-        />
+        <SingleMixedEditor />
       </main>
+      <Toaster/>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <EditorUiProvider>
+      <EditorTextProvider>
+        <HomeContent />
+      </EditorTextProvider>
+    </EditorUiProvider>
   );
 }

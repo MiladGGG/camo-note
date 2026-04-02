@@ -1,39 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createEditor, Descendant, Node, Range } from "slate";
+import { createEditor, Descendant, Editor, Node, Range, Transforms } from "slate";
+import { HistoryEditor, withHistory } from "slate-history";
 import { Editable, RenderLeafProps, Slate, withReact } from "slate-react";
 import TextManager from "@/src/buffer/TextManager";
 import ReplacementSet from "@/src/mask/ReplacementSet";
 import { loadWordSet } from "@/src/mask/WordSets";
-import {
-  computeDisplayChunks,
-  ViewMode,
-  type DisplayChunk,
-} from "@/src/view/DisplayComposer";
-
-type MaskStyle =
-  | "natural"
-  | "scientific"
-  | "business"
-  | "story"
-  | "pirate";
-
-type FontStyle =
-  | "verdana"
-  | "arial"
-  | "tahoma"
-  | "times"
-  | "georgia"
-  | "courier";
-
-type SingleMixedEditorProps = {
-  viewMode: ViewMode;
-  maskStyle: MaskStyle;
-  contextRadius: number;
-  fontStyle: FontStyle;
-  fontSize: number;
-};
+import { computeDisplayChunks, type DisplayChunk } from "@/src/view/DisplayComposer";
+import { useEditorUi } from "@/components/editor/EditorUiContext";
+import { useEditorText } from "@/components/editor/EditorTextContext";
 
 const initialValue: Descendant[] = [
   {
@@ -67,14 +43,12 @@ function caretIndexToSelection(text: string, caretIndex: number): Range {
   return { anchor: point, focus: point } as Range;
 }
 
-export default function SingleMixedEditor({
-  viewMode,
-  maskStyle,
-  contextRadius,
-  fontStyle,
-  fontSize,
-}: SingleMixedEditorProps) {
-  const editor = useMemo(() => withReact(createEditor()), []);
+export default function SingleMixedEditor() {
+  const { editorSettings, effectiveViewMode, maskStyle } = useEditorUi();
+  const { registerTextAccessors, registerCommandAccessors } = useEditorText();
+  const { contextRadius, fontStyle, fontSize } = editorSettings;
+
+  const editor = useMemo(() => withReact(withHistory(createEditor())), []);
   const ENABLE_REAL_COLOR = true;
 
   const [cursorActive, setCursorActive] = useState<boolean>(true);
@@ -92,6 +66,32 @@ export default function SingleMixedEditor({
   const projectedRealRangesRef = useRef<Array<{ start: number; end: number }>>(
     []
   );
+
+  useEffect(() => {
+    registerTextAccessors({
+      getRealText: () => managerRef.current?.getRealText() ?? "",
+      getMaskedText: () => managerRef.current?.getMaskedText() ?? "",
+    });
+
+    return () => {
+      registerTextAccessors(null);
+    };
+  }, [registerTextAccessors]);
+
+  useEffect(() => {
+    registerCommandAccessors({
+      undo: () => {
+        HistoryEditor.undo(editor as HistoryEditor);
+      },
+      redo: () => {
+        HistoryEditor.redo(editor as HistoryEditor);
+      }
+    });
+
+    return () => {
+      registerCommandAccessors(null);
+    };
+  }, [editor, registerCommandAccessors]);
 
   const fontFamily =
     fontStyle === "courier"
@@ -271,7 +271,7 @@ export default function SingleMixedEditor({
     // Now project the backend into the editor so masked/real letters match.
     const projectedChunks = computeDisplayChunks(
       manager,
-      viewMode,
+      effectiveViewMode,
       contextRadius,
       cursorActive
     );
@@ -300,7 +300,7 @@ export default function SingleMixedEditor({
 
     const projectedChunks = computeDisplayChunks(
       manager,
-      viewMode,
+      effectiveViewMode,
       contextRadius,
       effectiveCursorActive
     );
@@ -315,7 +315,7 @@ export default function SingleMixedEditor({
     }
 
     prevContextRadiusRef.current = contextRadius;
-  }, [viewMode, contextRadius, cursorActive]);
+  }, [effectiveViewMode, contextRadius, cursorActive]);
 
   // Load/refresh replacement set and update TextManager + projection.
   useEffect(() => {
@@ -344,7 +344,7 @@ export default function SingleMixedEditor({
 
       const projectedChunks = computeDisplayChunks(
         manager,
-        viewMode,
+        effectiveViewMode,
         contextRadius,
         cursorActive
       );
@@ -364,7 +364,7 @@ export default function SingleMixedEditor({
     return () => {
       cancelled = true;
     };
-  }, [maskStyle]);
+  }, [maskStyle, effectiveViewMode, contextRadius, cursorActive]);
 
   useEffect(() => {
     if (!showInspector) return;
