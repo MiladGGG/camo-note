@@ -65,12 +65,20 @@ export default function HeaderEditorControls() {
             updateEditorSettings({ fontStyle: e.target.value as FontStyle })
           }
         >
-          <option value="verdana">Verdana</option>
-          <option value="arial">Arial</option>
-          <option value="tahoma">Tahoma</option>
-          <option value="times">Times New Roman</option>
-          <option value="georgia">Georgia</option>
-          <option value="courier">Courier (mono)</option>
+          <optgroup label="Sans Serif">
+            <option value="arial">Arial</option>
+            <option value="helvetica">Helvetica</option>
+            <option value="calibri">Calibri</option>
+            <option value="verdana">Verdana</option>
+            <option value="tahoma">Tahoma</option>
+          </optgroup>
+          <optgroup label="Serif">
+            <option value="times">Times New Roman</option>
+            <option value="georgia">Georgia</option>
+          </optgroup>
+          <optgroup label="Mono">
+            <option value="robotoMono">Roboto Mono</option>
+          </optgroup>
         </select>
       </div>
 
@@ -83,6 +91,7 @@ export default function HeaderEditorControls() {
             updateEditorSettings({ fontSize: parseInt(e.target.value, 10) })
           }
         >
+          <option value={6}>6</option>
           <option value={8}>8</option>
           <option value={10}>10</option>
           <option value={12}>12</option>
@@ -90,6 +99,9 @@ export default function HeaderEditorControls() {
           <option value={16}>16</option>
           <option value={18}>18</option>
           <option value={20}>20</option>
+          <option value={24}>24</option>
+          <option value={30}>30</option>
+          <option value={48}>48</option>
         </select>
       </div>
     </div>

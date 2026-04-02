@@ -6,7 +6,7 @@ import HeaderTitleInput from "@/components/header/HeaderTitleInput";
 
 export default function DocsHeader() {
   return (
-    <header className="relative z-20 bg-white/95 backdrop-blur flex items-center justify-between px-4 sm:px-8 lg:px-12 py-3 sm:py-4 shadow-sm select-none">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur flex items-center justify-between px-4 sm:px-8 lg:px-12 py-3 sm:py-4 shadow-sm select-none">
       <div className="flex items-center gap-4 sm:gap-5">
         <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
           C

@@ -1,6 +1,14 @@
 export type ViewMode = "masked" | "real";
 export type MaskStyle = "natural" | "scientific" | "business" | "story" | "pirate";
-export type FontStyle = "verdana" | "arial" | "tahoma" | "times" | "georgia" | "courier";
+export type FontStyle =
+  | "arial"
+  | "helvetica"
+  | "calibri"
+  | "verdana"
+  | "tahoma"
+  | "times"
+  | "georgia"
+  | "robotoMono";
 
 export type EditorSettings = {
   viewMode: ViewMode;

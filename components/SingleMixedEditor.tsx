@@ -52,9 +52,6 @@ export default function SingleMixedEditor() {
   const ENABLE_REAL_COLOR = true;
 
   const [cursorActive, setCursorActive] = useState<boolean>(true);
-  const [showInspector, setShowInspector] = useState<boolean>(false);
-  const [realTextSnapshot, setRealTextSnapshot] = useState<string>("");
-  const [maskedTextSnapshot, setMaskedTextSnapshot] = useState<string>("");
   const [overlayChunks, setOverlayChunks] = useState<DisplayChunk[]>([]);
 
   const managerRef = useRef<TextManager | null>(null);
@@ -63,9 +60,6 @@ export default function SingleMixedEditor() {
   const isProjectingRef = useRef<boolean>(false);
   const prevContextRadiusRef = useRef<number>(contextRadius);
   const projectedTextRef = useRef<string>("");
-  const projectedRealRangesRef = useRef<Array<{ start: number; end: number }>>(
-    []
-  );
 
   useEffect(() => {
     registerTextAccessors({
@@ -94,32 +88,24 @@ export default function SingleMixedEditor() {
   }, [editor, registerCommandAccessors]);
 
   const fontFamily =
-    fontStyle === "courier"
-      ? '"Courier New", Courier, monospace'
+    fontStyle === "robotoMono"
+      ? '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace'
       : fontStyle === "times"
         ? '"Times New Roman", Times, serif'
         : fontStyle === "georgia"
           ? "Georgia, serif"
+          : fontStyle === "calibri"
+            ? "Calibri, Candara, Segoe, sans-serif"
+            : fontStyle === "helvetica"
+              ? '"Helvetica Neue", Helvetica, Arial, sans-serif'
           : fontStyle === "arial"
             ? "Arial, Helvetica, sans-serif"
             : fontStyle === "tahoma"
               ? "Tahoma, Verdana, sans-serif"
               : "Verdana, Geneva, sans-serif";
 
-  function refreshFeatureSnapshots() {
-    const manager = managerRef.current;
-    if (!manager) {
-      setRealTextSnapshot("");
-      setMaskedTextSnapshot("");
-      return;
-    }
-    setRealTextSnapshot(manager.getRealText());
-    setMaskedTextSnapshot(manager.getMaskedText());
-  }
-
   function setProjectionText(projectedChunks: DisplayChunk[]) {
     projectedTextRef.current = projectedChunks.map((c) => c.text).join("");
-    projectedRealRangesRef.current = [];
     if (ENABLE_REAL_COLOR) {
       setOverlayChunks(projectedChunks);
     } else {
@@ -266,8 +252,6 @@ export default function SingleMixedEditor() {
       manager.setCursor(caretIndex);
     }
 
-    refreshFeatureSnapshots();
-
     // Now project the backend into the editor so masked/real letters match.
     const projectedChunks = computeDisplayChunks(
       manager,
@@ -358,7 +342,6 @@ export default function SingleMixedEditor() {
         applyProjection(projectedChunks, getCaretIndexNow());
       }
 
-      refreshFeatureSnapshots();
     })();
 
     return () => {
@@ -366,23 +349,18 @@ export default function SingleMixedEditor() {
     };
   }, [maskStyle, effectiveViewMode, contextRadius, cursorActive]);
 
-  useEffect(() => {
-    if (!showInspector) return;
-    refreshFeatureSnapshots();
-  }, [showInspector]);
-
   return (
-    <div className="relative z-0 w-full max-w-4xl my-10 bg-white shadow-sm flex flex-col">
+    <div className="relative z-0 w-full max-w-4xl my-10 bg-white shadow-sm">
       <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
         <div
-          className="relative flex-1 min-h-[400px] p-12 whitespace-pre-wrap leading-relaxed"
+          className="relative min-h-[500px] p-12 whitespace-pre-wrap leading-relaxed"
           style={{ fontFamily, fontSize }}
         >
           <Editable
             spellCheck={false}
             autoFocus
             placeholder="Start writing your masked diary..."
-            className="focus:outline-none caret-black selection:bg-blue-200"
+            className="block w-full min-h-[100px] whitespace-pre-wrap break-words focus:outline-none caret-black selection:bg-blue-200"
             renderLeaf={renderLeaf}
             onFocus={() => setCursorActive(true)}
             onBlur={() => setCursorActive(false)}
@@ -410,55 +388,6 @@ export default function SingleMixedEditor() {
           )}
         </div>
       </Slate>
-
-      <div className="px-4 py-1 border-t border-gray-100 flex items-center justify-end">
-        <button
-          type="button"
-          aria-label={
-            showInspector ? "Hide inspector outputs" : "Show inspector outputs"
-          }
-          title={showInspector ? "Hide inspector" : "Show inspector"}
-          className="inline-flex items-center gap-2 text-[11px] text-gray-600 hover:text-gray-900 px-2 py-1 rounded-full bg-white hover:bg-gray-50"
-          onClick={() => setShowInspector((prev) => !prev)}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-          <span className="hidden sm:inline">{showInspector ? "Hide" : "Inspect"}</span>
-        </button>
-      </div>
-
-      {showInspector && (
-        <div className="px-4 pb-3 pt-2 bg-white text-[11px] text-gray-600 space-y-2">
-          <div>
-            <div className="font-medium mb-1">Real text</div>
-            <div className="whitespace-pre-wrap break-words">
-              {realTextSnapshot || (
-                <span className="text-gray-400">No text yet…</span>
-              )}
-            </div>
-          </div>
-          <div>
-            <div className="font-medium mb-1">Fully masked text</div>
-            <div className="whitespace-pre-wrap break-words">
-              {maskedTextSnapshot || (
-                <span className="text-gray-400">No text yet…</span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
