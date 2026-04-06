@@ -17,7 +17,7 @@ export default function HeaderNavMenus() {
   );
 
   return (
-    <nav className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 mt-1">
+    <nav className="mt-0.5 hidden items-center gap-0.5 text-xs font-medium text-gray-600 sm:flex">
       {menuConfigs.map((menu) => (
         <HeaderMenuDropdown
           key={menu.label}

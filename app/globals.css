@@ -1,3 +1,14 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-surface-workspace: #f2f1ee;
+  --color-surface-muted: #f7f6f3;
+}
+
+::selection {
+  background-color: rgb(219 234 254);
+  color: rgb(17 24 39);
+}
 

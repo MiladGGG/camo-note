@@ -56,6 +56,9 @@ class ReplacementSet {
             do { // Ensure new word is different
                 randomValue = Math.floor(Math.random() * (targetWords.length));
                 randomReplacementString = targetWords[randomValue];
+                if (targetWords.length == 1) { // Edge case when there is only one word to choose from
+                    break;
+                }
             } while (randomReplacementString.toLowerCase() == word.toLowerCase())
 
         }

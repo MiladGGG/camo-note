@@ -8,10 +8,12 @@ import toast from "react-hot-toast";
 type MaskOption = { label: string; value: MaskStyle };
 
 const maskOptions: MaskOption[] = [
-  { label: "Natural", value: "natural" },
   { label: "Scientific", value: "scientific" },
   { label: "Business", value: "business" },
-  { label: "Story", value: "story" },
+  { label: "Legal", value: "legal" },
+  { label: "Acedemic", value: "acedemic" },
+  { label: "News", value: "news" },
+  { label: "Dramatic", value: "dramatic" },
   { label: "Pirate", value: "pirate" },
 ];
 

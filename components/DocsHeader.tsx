@@ -6,32 +6,35 @@ import HeaderTitleInput from "@/components/header/HeaderTitleInput";
 
 export default function DocsHeader() {
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur flex items-center justify-between px-4 sm:px-8 lg:px-12 py-3 sm:py-4 shadow-sm select-none">
-      <div className="flex items-center gap-4 sm:gap-5">
-        <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
-          C
-        </div>
-        <div className="flex flex-col">
-          <HeaderTitleInput />
-          <HeaderNavMenus />
+    <header className="sticky top-0 z-30 flex flex-col gap-3 border-b border-gray-200/80 bg-white/75 px-4 py-3.5 backdrop-blur-md select-none sm:px-8 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:px-12">
+      <div className="flex w-full min-w-0 items-center gap-3 lg:flex-1 lg:justify-start">
+        <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-1">
+          <a
+            href=""
+            target="_blank"
+            rel="noreferrer"
+            className="-m-1 inline-flex shrink-0 items-center justify-center rounded-full p-1 outline-none transition-colors hover:bg-gray-100/90 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+            aria-label="Website home"
+          >
+            <img
+              src="/logo.png"
+              alt=""
+              width={40}
+              height={40}
+              className="h-10 w-10 object-contain sm:h-13 sm:w-13"
+              decoding="async"
+            />
+          </a>
+          <div className="flex min-w-0 flex-col gap-0">
+            <HeaderTitleInput />
+            <HeaderNavMenus />
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex w-full min-w-0 flex-wrap items-center gap-2 lg:w-auto lg:shrink-0 lg:justify-end">
         <HeaderEditorControls />
-        <button
-          type="button"
-          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border border-blue-100 bg-blue-50 text-blue-700 hover:bg-blue-100"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-          Share
-        </button>
-        <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700">
-          M
-        </div>
       </div>
     </header>
   );
 }
-
-

@@ -7,9 +7,17 @@ import { EditorUiProvider, useEditorUi } from "@/components/editor/EditorUiConte
 import { EditorTextProvider, useEditorText } from "@/components/editor/EditorTextContext";
 import { Toaster } from "react-hot-toast";
 
+const DOCUMENT_TITLE_SUFFIX = " - Camo Note";
+
 function HomeContent() {
-  const { overrideViewMode, setOverrideViewMode } = useEditorUi();
+  const { overrideViewMode, setOverrideViewMode, documentTitle } = useEditorUi();
   const { getRealText } = useEditorText();
+
+  useEffect(() => {
+    const name =
+      documentTitle.trim() === "" ? "Untitled document" : documentTitle.trim();
+    document.title = `${name}${DOCUMENT_TITLE_SUFFIX}`;
+  }, [documentTitle]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -47,27 +55,43 @@ function HomeContent() {
     >
       <DocsHeader />
 
-      <main className="flex-1 flex justify-center">
+      <main className="flex-1 flex justify-center px-5 sm:px-10 lg:px-14 pt-10 pb-16">
         <SingleMixedEditor />
       </main>
 
-      <footer className="shrink-0 border-t border-gray-200 bg-white/95 px-4 sm:px-8 lg:px-12 py-3 text-xs text-gray-600 flex items-center justify-between">
+      <footer className="shrink-0 border-t border-gray-200/80 bg-[var(--color-surface-muted)] px-4 sm:px-8 lg:px-12 py-3.5 text-xs text-gray-600 flex items-center justify-between">
         <span>Camo Note</span>
         <div className="flex items-center gap-4">
           <a
             href="https://github.com/miladggg/camo-note"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-gray-900 underline-offset-2 hover:underline"
+            className="inline-flex items-center gap-1.5 underline-offset-2 hover:text-blue-700 hover:underline"
           >
+            <img
+              src="/icons/github.svg"
+              alt=""
+              width={16}
+              height={16}
+              className="h-4 w-4 object-contain opacity-80"
+              decoding="async"
+            />
             GitHub
           </a>
           <a
             href="https://miladggg.com"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-gray-900 underline-offset-2 hover:underline"
+            className="inline-flex items-center gap-1.5 underline-offset-2 hover:text-blue-700 hover:underline"
           >
+            <img
+              src="/icons/website.svg"
+              alt=""
+              width={16}
+              height={16}
+              className="h-4 w-4 object-contain opacity-80"
+              decoding="async"
+            />
             My Website
           </a>
         </div>

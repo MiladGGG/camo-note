@@ -46,7 +46,7 @@ function caretIndexToSelection(text: string, caretIndex: number): Range {
 export default function SingleMixedEditor() {
   const { editorSettings, effectiveViewMode, maskStyle } = useEditorUi();
   const { registerTextAccessors, registerCommandAccessors } = useEditorText();
-  const { contextRadius, fontStyle, fontSize } = editorSettings;
+  const { contextRadius, fontStyle, fontSize, revealedTextColorHex } = editorSettings;
 
   const editor = useMemo(() => withReact(withHistory(createEditor())), []);
   const ENABLE_REAL_COLOR = true;
@@ -60,6 +60,8 @@ export default function SingleMixedEditor() {
   const isProjectingRef = useRef<boolean>(false);
   const prevContextRadiusRef = useRef<number>(contextRadius);
   const projectedTextRef = useRef<string>("");
+  /** After focus, ignore caret-based reveal until Slate selection is synced into TextManager (avoids flashing the old line). */
+  const revealSuppressedUntilCursorSyncRef = useRef(false);
 
   useEffect(() => {
     registerTextAccessors({
@@ -88,7 +90,9 @@ export default function SingleMixedEditor() {
   }, [editor, registerCommandAccessors]);
 
   const fontFamily =
-    fontStyle === "robotoMono"
+    fontStyle === "inter"
+      ? "var(--font-inter), ui-sans-serif, system-ui, sans-serif"
+      : fontStyle === "robotoMono"
       ? '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace'
       : fontStyle === "times"
         ? '"Times New Roman", Times, serif'
@@ -250,14 +254,17 @@ export default function SingleMixedEditor() {
       const caretIndex = getCaretIndexFromSelection(newValue);
       latestCaretIndexRef.current = caretIndex;
       manager.setCursor(caretIndex);
+      revealSuppressedUntilCursorSyncRef.current = false;
     }
 
     // Now project the backend into the editor so masked/real letters match.
+    const revealForCaret =
+      cursorActive && !revealSuppressedUntilCursorSyncRef.current;
     const projectedChunks = computeDisplayChunks(
       manager,
       effectiveViewMode,
       contextRadius,
-      cursorActive
+      revealForCaret
     );
     const projectedText = projectedChunks.map((c) => c.text).join("");
 
@@ -280,7 +287,10 @@ export default function SingleMixedEditor() {
     if (isProjectingRef.current) return;
 
     const contextRadiusChanged = contextRadius !== prevContextRadiusRef.current;
-    const effectiveCursorActive = cursorActive || contextRadiusChanged;
+    const baseCursorActive = cursorActive || contextRadiusChanged;
+    const revealForCaret =
+      !revealSuppressedUntilCursorSyncRef.current || contextRadiusChanged;
+    const effectiveCursorActive = baseCursorActive && revealForCaret;
 
     const projectedChunks = computeDisplayChunks(
       manager,
@@ -301,7 +311,10 @@ export default function SingleMixedEditor() {
     prevContextRadiusRef.current = contextRadius;
   }, [effectiveViewMode, contextRadius, cursorActive]);
 
-  // Load/refresh replacement set and update TextManager + projection.
+  // TextManager is created once; only maskStyle changes swap the ReplacementSet via
+  // changeReplacementSet (which clears cache — intentional when the word list changes).
+  // Do not depend on view mode / context / focus here or toggling Masked↔Real would
+  // re-run this effect and wipe the masked cache.
   useEffect(() => {
     let cancelled = false;
 
@@ -330,7 +343,7 @@ export default function SingleMixedEditor() {
         manager,
         effectiveViewMode,
         contextRadius,
-        cursorActive
+        cursorActive && !revealSuppressedUntilCursorSyncRef.current
       );
       const projectedText = projectedChunks.map((c) => c.text).join("");
 
@@ -341,28 +354,30 @@ export default function SingleMixedEditor() {
       if (projectedText !== previousDisplayTextRef.current) {
         applyProjection(projectedChunks, getCaretIndexNow());
       }
-
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [maskStyle, effectiveViewMode, contextRadius, cursorActive]);
+  }, [maskStyle]);
 
   return (
-    <div className="relative z-0 w-full max-w-4xl my-10 bg-white shadow-sm">
+    <div className="relative z-0 w-full max-w-[210mm] rounded-md bg-white shadow-[0_12px_40px_-12px_rgba(15,23,42,0.12),0_4px_16px_-4px_rgba(15,23,42,0.08)] ring-1 ring-gray-200/70">
       <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
         <div
-          className="relative min-h-[500px] p-12 whitespace-pre-wrap leading-relaxed"
+          className="relative min-h-[297mm] whitespace-pre-wrap px-10 py-12 sm:px-14 sm:py-14 md:px-16 md:py-16 [line-height:1.62]"
           style={{ fontFamily, fontSize }}
         >
           <Editable
             spellCheck={false}
             autoFocus
             placeholder="Start writing your masked diary..."
-            className="block w-full min-h-[100px] whitespace-pre-wrap break-words focus:outline-none caret-black selection:bg-blue-200"
+            className="block w-full min-h-[120px] whitespace-pre-wrap break-words text-gray-800 placeholder:text-gray-400 focus:outline-none caret-auto selection:bg-blue-100 selection:text-gray-900"
             renderLeaf={renderLeaf}
-            onFocus={() => setCursorActive(true)}
+            onFocus={() => {
+              revealSuppressedUntilCursorSyncRef.current = true;
+              setCursorActive(true);
+            }}
             onBlur={() => setCursorActive(false)}
             onKeyDown={(e) => {
               if (e.key === "`") {
@@ -373,13 +388,14 @@ export default function SingleMixedEditor() {
 
           {ENABLE_REAL_COLOR && overlayChunks.length > 0 && (
             <div
-              className="pointer-events-none absolute inset-0 p-12 whitespace-pre-wrap leading-relaxed"
+              className="pointer-events-none absolute inset-0 whitespace-pre-wrap px-10 py-12 sm:px-14 sm:py-14 md:px-16 md:py-16 [line-height:1.62]"
               style={{ fontFamily, fontSize }}
             >
               {overlayChunks.map((chunk, idx) => (
                 <span
                   key={idx}
-                  className={chunk.isReal ? "text-[#783204]" : "text-transparent"}
+                  className={chunk.isReal ? "" : "text-transparent"}
+                  style={chunk.isReal ? { color: revealedTextColorHex } : undefined}
                 >
                   {chunk.text}
                 </span>

@@ -13,6 +13,7 @@ import type {
   MaskStyle,
   ViewMode,
 } from "@/components/header/types";
+import { DEFAULT_REVEALED_TEXT_COLOR_HEX } from "@/components/header/revealedTextColorPresets";
 
 type EditorUiContextValue = {
   documentTitle: string;
@@ -34,13 +35,14 @@ type EditorUiProviderProps = {
 
 export function EditorUiProvider({ children }: EditorUiProviderProps) {
   const [documentTitle, setDocumentTitle] = useState<string>("Untitled document");
-  const [maskStyle, setMaskStyle] = useState<MaskStyle>("natural");
+  const [maskStyle, setMaskStyle] = useState<MaskStyle>("scientific");
   const [overrideViewMode, setOverrideViewMode] = useState<ViewMode | null>(null);
   const [editorSettings, setEditorSettings] = useState<EditorSettings>({
     viewMode: "masked",
     contextRadius: 0,
-    fontStyle: "arial" as FontStyle,
+    fontStyle: "inter" as FontStyle,
     fontSize: 14,
+    revealedTextColorHex: DEFAULT_REVEALED_TEXT_COLOR_HEX,
   });
 
   const updateEditorSettings = (patch: Partial<EditorSettings>) => {
