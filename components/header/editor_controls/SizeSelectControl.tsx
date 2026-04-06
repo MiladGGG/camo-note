@@ -3,7 +3,7 @@
 import { useEditorUi } from "@/components/editor/EditorUiContext";
 import { controlShellBase, editorControlLabel, sizeSelect } from "./styles";
 
-const SIZE_OPTIONS = [6, 8, 10, 12, 14, 16, 18, 20, 24, 30, 48] as const;
+const SIZE_OPTIONS = [6, 8, 10, 12, 14, 16, 18, 20, 24, 30] as const;
 
 export function SizeSelectControl() {
   const { editorSettings, updateEditorSettings } = useEditorUi();
