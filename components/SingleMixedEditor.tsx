@@ -371,7 +371,7 @@ export default function SingleMixedEditor() {
           <Editable
             spellCheck={false}
             autoFocus
-            placeholder="Start writing your masked diary..."
+            placeholder="Start writing your masked document..."
             className="block w-full min-h-[120px] whitespace-pre-wrap break-words text-gray-800 placeholder:text-gray-400 focus:outline-none caret-auto selection:bg-blue-100 selection:text-gray-900"
             renderLeaf={renderLeaf}
             onFocus={() => {

@@ -11,6 +11,7 @@ export const REVEALED_TEXT_COLOR_PRESETS: readonly RevealedTextColorPreset[] = [
   { hex: "#8c1616", label: "Crimson" },
   { hex: "#7c3aed", label: "Violet" },
   { hex: "#0d9488", label: "Teal" },
+  { hex: "#2563eb", label: "Blue" },
 ] as const;
 
 export const DEFAULT_REVEALED_TEXT_COLOR_HEX = REVEALED_TEXT_COLOR_PRESETS[0]!.hex;

@@ -10,7 +10,7 @@ export default function DocsHeader() {
       <div className="flex w-full min-w-0 items-center gap-3 lg:flex-1 lg:justify-start">
         <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-1">
           <a
-            href=""
+            href="/"
             target="_blank"
             rel="noreferrer"
             className="-m-1 inline-flex shrink-0 items-center justify-center rounded-full p-1 outline-none transition-colors hover:bg-gray-100/90 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
