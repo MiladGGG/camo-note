@@ -2,39 +2,56 @@
 
 import { Hero } from "@/components/landing_page/Hero";
 import { Feature1 } from "@/components/landing_page/Feature";
-import { FeatureReveal } from "@/components/landing_page/FeatureReveal";
 import SiteFooter from "@/components/SiteFooter";
 import { EyeOff, PencilLine } from "lucide-react";
+import { FeatureReveal } from "@/components/landing_page/FeatureReveal";
 
 export default function Home() {
+  const ctaButton = {
+    text: "Try it now",
+    icon: <PencilLine className="ml-0 size-4" />,
+    url: "/editor",
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-      <Hero
-        icon={<EyeOff className="size-10" />}
-        heading="Camo Note"
-        description="Camo Note - write privately in public."
-        button={{
-          text: "Try it now",
-          icon: <PencilLine className="ml-0 size-4" />,
-          url: "/editor",
-        }}
-      trustText="Fast and free demo available"
-      imageSrc="/logo2.png"
-      imageAlt="demo gif"
+        <Hero
+          icon={<EyeOff className="size-10" />}
+          heading="Camo Note"
+          description="Camo Note - write privately in public."
+          button={ctaButton}
+          trustText="Fast and free demo available"
+          imageSrc="/logo2.png"
+          imageAlt="demo gif"
         />
-    <Feature1
-      title="Write privately in public"
-      description="Camo Note allows you to write privately in public. You can write your notes in public and they will be encrypted. You can also share your notes with others and they will be encrypted."
-      imageSrc="/feature1.png"
-      imageAlt="privacy image"
-      button={{
-        text: "Try it now",
-        icon: <PencilLine className="ml-0 size-4" />,
-        url: "/editor",
-      }}
-    />
-      <FeatureReveal />
+
+        <Feature1
+          title="Text Masking"
+          description="As you type in Camo Note, your words are masked so your page always looks like an innocent document to anyone glancing at your screen."
+          imageSrc="/features/masking.gif"
+          imageAlt="Text masking demo"
+          button={ctaButton}
+        />
+
+        <Feature1
+          title="Context Reveal"
+          description="To keep your flow, words around your caret can reveal themselves in a small radius. You can tune the amount of context, or hold the backtick key (`) to temporarily reveal everything."
+          imageSrc="/features/context.gif"
+          imageAlt="Context reveal demo"
+          button={ctaButton}
+        />
+
+        <Feature1
+          title="Masking Styles"
+          description="Masking styles control what onlookers see: scientific report, legal document, news article, and more. You stay readable to yourself while blending into any workspace."
+          imageSrc="/features/styles.gif"
+          imageAlt="Masking styles demo"
+          button={ctaButton}
+        />
+        <FeatureReveal>
+          
+        </FeatureReveal>
       </main>
       <SiteFooter />
     </div>
