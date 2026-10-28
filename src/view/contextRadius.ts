@@ -13,6 +13,6 @@ export function stepContextRadius(current: number, direction: -1 | 1): number {
   if (index < 0) {
     index = 1;
   }
-  const next = Math.min(steps.length - 1, Math.max(0, index + direction));
+  const next = (index + direction + steps.length) % steps.length;
   return steps[next];
 }

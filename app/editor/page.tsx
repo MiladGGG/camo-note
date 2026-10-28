@@ -17,15 +17,13 @@ function isTextField(target: EventTarget | null) {
 }
 
 function contextRadiusDirection(event: { ctrlKey: boolean; metaKey: boolean; altKey: boolean; shiftKey: boolean; key: string; code: string }): -1 | 1 | null {
-  if (!event.ctrlKey || event.metaKey || event.altKey) {
+  if (!event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
     return null;
   }
-  const decrease = event.key === "<" || (event.shiftKey && (event.key === "," || event.code === "Comma"));
-  const increase = event.key === ">" || (event.shiftKey && (event.key === "." || event.code === "Period"));
-  if (decrease) {
+  if (event.key === "," || event.code === "Comma") {
     return -1;
   }
-  if (increase) {
+  if (event.key === "." || event.code === "Period") {
     return 1;
   }
   return null;
