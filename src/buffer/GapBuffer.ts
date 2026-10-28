@@ -17,13 +17,14 @@ class GapBuffer {
     }
 
     public insert(str : string) {
-        for (const c of str) {
+        // One slot per UTF-16 code unit so cursor indexes match the editor.
+        for (let i = 0; i < str.length; i++) {
             if (this._gapStartIndex == this._gapEndIndex) {
                 this.grow();
             }
-            this._buffer[this._gapStartIndex] = c;
+            this._buffer[this._gapStartIndex] = str[i];
             this._gapStartIndex++;
-        }        
+        }
     }
 
 

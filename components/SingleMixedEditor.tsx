@@ -21,6 +21,7 @@ import {
 } from "@/components/header/revealedTextColorPresets";
 import { useEditorUi } from "@/components/editor/EditorUiContext";
 import { useEditorText } from "@/components/editor/EditorTextContext";
+import { graphemeBounds } from "@/src/text/graphemes";
 
 const initialValue: Descendant[] = [
   {
@@ -362,6 +363,23 @@ export default function SingleMixedEditor() {
     return caretIndex;
   }
 
+  function deleteWholeGrapheme(reverse: boolean): boolean {
+    if (!editor.selection || !Range.isCollapsed(editor.selection)) {
+      return false;
+    }
+    const value = editor.children;
+    const text = value.map((node) => Node.string(node)).join("\n");
+    const index = getCaretIndexFromSelection(value);
+    const bounds = graphemeBounds(text, index, reverse ? "backward" : "forward");
+    if (!bounds || bounds.end - bounds.start <= 1) {
+      return false;
+    }
+    const start = caretIndexToSelection(text, bounds.start).anchor;
+    const end = caretIndexToSelection(text, bounds.end).anchor;
+    Transforms.delete(editor, { at: { anchor: start, focus: end } });
+    return true;
+  }
+
   function getCaretIndexNow(): number {
     return getCaretIndexFromSelection(editor.children as Descendant[]);
   }
@@ -640,6 +658,16 @@ export default function SingleMixedEditor() {
             onBlur={() => setCursorActive(false)}
             onKeyDown={(e) => {
               if (e.key === "`") {
+                e.preventDefault();
+              }
+              const reverse = e.key === "Backspace";
+              if (
+                (reverse || e.key === "Delete") &&
+                !e.metaKey &&
+                !e.ctrlKey &&
+                !e.altKey &&
+                deleteWholeGrapheme(reverse)
+              ) {
                 e.preventDefault();
               }
             }}

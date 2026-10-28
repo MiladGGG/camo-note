@@ -1,3 +1,4 @@
+import { graphemeSegments, isEmojiGrapheme } from "../text/graphemes";
 import TextUtils from "../TextUtils";
 import type { RawMap } from "./WordSets";
 
@@ -123,6 +124,16 @@ class ReplacementSet {
 
     // Chooses and runs proper masking method
     private runMaskMethod(input : string) : string {
+        const segments = graphemeSegments(input);
+        if (segments.some(isEmojiGrapheme)) {
+            return segments
+                .map((segment) => (isEmojiGrapheme(segment) ? segment : this.maskByCharacterClass(segment)))
+                .join("");
+        }
+        return this.maskByCharacterClass(input);
+    }
+
+    private maskByCharacterClass(input : string) : string {
         let letterCount = 0;
         let numberCount = 0;
         let symbolCount = 0;

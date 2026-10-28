@@ -171,9 +171,9 @@ class TextManager { // Potentially use generic
     }
 
     private processInsert(str : string){ // No current word, delimeters split words
-        for (const c of str) {
-            this.splitWord(c);
-
+        // Step by code unit. `for...of` yields a whole emoji as one step and desyncs the caret.
+        for (let i = 0; i < str.length; i++) {
+            this.splitWord(str[i]);
             this._cursor++;
         }
     }
