@@ -1,15 +1,15 @@
 "use client";
 
 import { useEditorUi } from "@/components/editor/EditorUiContext";
-import { CONTEXT_RADIUS_LINE, CONTEXT_RADIUS_NONE } from "@/src/view/contextRadius";
+import { CONTEXT_RADIUS_LINE, CONTEXT_RADIUS_STEPS } from "@/src/view/contextRadius";
 import { contextBarShell, editorControlLabel, segmentButtonIdle, segmentTrack } from "./styles";
 
 const SEGMENTS: { label: string; radius: number; title: string }[] = [
-  { label: "0", radius: CONTEXT_RADIUS_NONE, title: "Hide every word until reveal mode" },
-  { label: "1", radius: 0, title: "Reveal the word you are typing" },
-  { label: "3", radius: 2, title: "Reveal a few words around the caret" },
-  { label: "5", radius: 5, title: "Reveal a wider stretch around the caret" },
-  { label: "10", radius: 10, title: "Reveal a wider stretch around the caret" },
+  { label: "0", radius: CONTEXT_RADIUS_STEPS[0], title: "Hide every word until reveal mode" },
+  { label: "1", radius: CONTEXT_RADIUS_STEPS[1], title: "Reveal the word you are typing" },
+  { label: "3", radius: CONTEXT_RADIUS_STEPS[2], title: "Reveal a few words around the caret" },
+  { label: "5", radius: CONTEXT_RADIUS_STEPS[3], title: "Reveal a wider stretch around the caret" },
+  { label: "10", radius: CONTEXT_RADIUS_STEPS[4], title: "Reveal a wider stretch around the caret" },
 ];
 
 export function ContextRadiusControl() {

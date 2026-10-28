@@ -5,7 +5,11 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 /** Returns the passcode, or null when the dialog is dismissed. */
-export function askPasscode(options?: { confirm?: boolean }): Promise<string | null> {
+export function askPasscode(options?: {
+  confirm?: boolean;
+  /** Return an error message to keep the dialog open, or null to accept the passcode. */
+  verify?: (passcode: string) => Promise<string | null>;
+}): Promise<string | null> {
   return new Promise((resolve) => {
     const host = document.createElement("div");
     host.className = document.querySelector(".dark") ? "dark" : "";
@@ -23,15 +27,19 @@ export function askPasscode(options?: { confirm?: boolean }): Promise<string | n
       resolve(value);
     };
 
-    root.render(<PasscodeDialog confirm={options?.confirm ?? false} onFinish={finish} />);
+    root.render(
+      <PasscodeDialog confirm={options?.confirm ?? false} verify={options?.verify} onFinish={finish} />,
+    );
   });
 }
 
 function PasscodeDialog({
   confirm,
+  verify,
   onFinish,
 }: {
   confirm: boolean;
+  verify?: (passcode: string) => Promise<string | null>;
   onFinish: (value: string | null) => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -43,8 +51,12 @@ function PasscodeDialog({
   const [visible, setVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const submitPasscode = () => {
+  const submitPasscode = async () => {
+    if (busy) {
+      return;
+    }
     const passcode = inputRef.current?.value ?? "";
     if (!passcode) {
       setError("Enter a passcode");
@@ -62,6 +74,20 @@ function PasscodeDialog({
         setError("Passcodes do not match");
         confirmRef.current?.focus();
         return;
+      }
+    }
+    if (verify) {
+      setBusy(true);
+      try {
+        const message = await verify(passcode);
+        if (message) {
+          setError(message);
+          inputRef.current?.focus();
+          inputRef.current?.select();
+          return;
+        }
+      } finally {
+        setBusy(false);
       }
     }
     onFinish(passcode);

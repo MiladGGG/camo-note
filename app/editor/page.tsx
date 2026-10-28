@@ -6,6 +6,7 @@ import DocsHeader from "@/components/DocsHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { engagePointerMode } from "@/components/header/editor_controls/MouseRevealControl";
 import { EditorUiProvider, useEditorUi } from "@/components/editor/EditorUiContext";
+import { stepContextRadius } from "@/src/view/contextRadius";
 import { EditorTextProvider, useEditorText } from "@/components/editor/EditorTextContext";
 import { Toaster } from "react-hot-toast";
 
@@ -13,6 +14,21 @@ const DOCUMENT_TITLE_SUFFIX = " - Camo Note";
 
 function isTextField(target: EventTarget | null) {
   return target instanceof HTMLElement && target.closest("input, textarea, select") != null;
+}
+
+function contextRadiusDirection(event: { ctrlKey: boolean; metaKey: boolean; altKey: boolean; shiftKey: boolean; key: string; code: string }): -1 | 1 | null {
+  if (!event.ctrlKey || event.metaKey || event.altKey) {
+    return null;
+  }
+  const decrease = event.key === "<" || (event.shiftKey && (event.key === "," || event.code === "Comma"));
+  const increase = event.key === ">" || (event.shiftKey && (event.key === "." || event.code === "Period"));
+  if (decrease) {
+    return -1;
+  }
+  if (increase) {
+    return 1;
+  }
+  return null;
 }
 
 function HomeContent() {
@@ -46,6 +62,17 @@ function HomeContent() {
   return (
     <div
       className={`flex min-h-screen flex-col ${isDark ? "dark bg-[#141416] text-zinc-100" : ""}`}
+      onKeyDownCapture={(e) => {
+        const direction = contextRadiusDirection(e);
+        if (direction == null || isTextField(e.target)) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        updateEditorSettings({
+          contextRadius: stepContextRadius(editorSettings.contextRadius, direction),
+        });
+      }}
       onKeyDown={(e) => {
         if (e.key === "`" && overrideViewMode === null) {
           e.preventDefault();

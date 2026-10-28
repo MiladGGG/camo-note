@@ -12,12 +12,26 @@ const onFileNew = () => {
 };
 
 async function plainTextFromCamoFile(file: File): Promise<string | null> {
-  const passcode = await askPasscode();
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let plaintext: string | null = null;
+  const passcode = await askPasscode({
+    verify: async (candidate) => {
+      try {
+        plaintext = await decryptCamoNote(bytes, candidate);
+        return null;
+      } catch (error) {
+        plaintext = null;
+        if (error instanceof CamoDecryptError) {
+          return error.message;
+        }
+        return "Could not read that file";
+      }
+    },
+  });
   if (passcode == null) {
     return null;
   }
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  return decryptCamoNote(bytes, passcode);
+  return plaintext;
 }
 
 export function useFileButtons(): HeaderDropdownItem[] {
