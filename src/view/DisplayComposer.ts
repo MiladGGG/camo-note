@@ -1,4 +1,5 @@
 import TextManager from "../buffer/TextManager";
+import { CONTEXT_RADIUS_LINE, CONTEXT_RADIUS_NONE } from "./contextRadius";
 
 export type ViewMode = "masked" | "real";
 
@@ -12,7 +13,9 @@ export function computeDisplayChunks(
   manager: TextManager | null,
   viewMode: ViewMode,
   contextRadius: number,
-  cursorActive: boolean
+  cursorActive: boolean,
+  /** Extra maskable-word indexes to show as real. Used by pointer reveal. */
+  extraRealWordIndexes?: ReadonlySet<number> | null
 ): DisplayChunk[] {
   if (!manager) {
     return [];
@@ -106,8 +109,9 @@ export function computeDisplayChunks(
         // maskable word in masked mode
         useReal = false;
 
-        if (cursorActive) {
-          // always show the cursor word as real
+        // Context 0 hides every word, including the one being typed.
+        // Words come back only in reveal mode (or via pointer reveal below).
+        if (cursorActive && contextRadius !== CONTEXT_RADIUS_NONE) {
           if (i === effectiveCursorIndex) {
             useReal = true;
           }
@@ -126,12 +130,16 @@ export function computeDisplayChunks(
           }
 
           // special line mode: contextRadius === -1 reveals entire current line
-          if (contextRadius === -1) {
+          if (contextRadius === CONTEXT_RADIUS_LINE) {
             const start = tokenStartByIndex[i] ?? 0;
             if (manager.isSameLine(cursorAbs, start)) {
               useReal = true;
             }
           }
+        }
+
+        if (extraRealWordIndexes?.has(i)) {
+          useReal = true;
         }
       }
     }
@@ -152,9 +160,16 @@ export function computeDisplayText(
   manager: TextManager | null,
   viewMode: ViewMode,
   contextRadius: number,
-  cursorActive: boolean
+  cursorActive: boolean,
+  extraRealWordIndexes?: ReadonlySet<number> | null
 ): string {
-  return computeDisplayChunks(manager, viewMode, contextRadius, cursorActive)
+  return computeDisplayChunks(
+    manager,
+    viewMode,
+    contextRadius,
+    cursorActive,
+    extraRealWordIndexes
+  )
     .map((c) => c.text)
     .join("");
 }

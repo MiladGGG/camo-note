@@ -11,7 +11,7 @@ export default function HeaderTitleInput() {
         aria-label="Document title"
         value={documentTitle}
         onChange={(e) => setDocumentTitle(e.target.value)}
-        className="min-w-[200px] sm:min-w-[300px] rounded-lg border border-transparent bg-transparent px-2 py-0 text-lg font-semibold tracking-tight text-gray-900 placeholder:text-gray-400 hover:border-gray-200/90 focus:border-blue-400/80 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:text-xl"
+        className="min-w-[200px] sm:min-w-[300px] rounded-lg border border-transparent bg-transparent px-2 py-0 text-lg font-semibold tracking-tight text-gray-900 placeholder:text-gray-400 hover:border-gray-200/90 focus:border-blue-400/80 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:text-xl dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:hover:border-white/15 dark:focus:ring-blue-900"
       />
     </div>
   );

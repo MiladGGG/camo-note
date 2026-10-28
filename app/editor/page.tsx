@@ -11,7 +11,7 @@ import { Toaster } from "react-hot-toast";
 const DOCUMENT_TITLE_SUFFIX = " - Camo Note";
 
 function HomeContent() {
-  const { overrideViewMode, setOverrideViewMode, documentTitle } = useEditorUi();
+  const { overrideViewMode, setOverrideViewMode, documentTitle, isDark } = useEditorUi();
   const { getRealText } = useEditorText();
 
   useEffect(() => {
@@ -39,7 +39,7 @@ function HomeContent() {
 
   return (
     <div
-      className="flex flex-col min-h-screen"
+      className={`flex min-h-screen flex-col ${isDark ? "dark bg-[#141416] text-zinc-100" : ""}`}
       onKeyDown={(e) => {
         if (e.key === "`" && overrideViewMode === null) {
           e.preventDefault();

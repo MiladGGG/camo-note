@@ -6,6 +6,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 import type {
   EditorSettings,
@@ -25,9 +26,21 @@ type EditorUiContextValue = {
   setOverrideViewMode: (mode: ViewMode | null) => void;
   overrideViewMode: ViewMode | null;
   effectiveViewMode: ViewMode;
+  /** Resolved appearance, including Auto following the system theme. */
+  isDark: boolean;
 };
 
 const EditorUiContext = createContext<EditorUiContextValue | null>(null);
+
+function subscribeSystemDark(onStoreChange: () => void) {
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  media.addEventListener("change", onStoreChange);
+  return () => media.removeEventListener("change", onStoreChange);
+}
+
+function readSystemDark() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
 
 type EditorUiProviderProps = {
   children: ReactNode;
@@ -43,7 +56,13 @@ export function EditorUiProvider({ children }: EditorUiProviderProps) {
     fontStyle: "inter" as FontStyle,
     fontSize: 14,
     revealedTextColorHex: DEFAULT_REVEALED_TEXT_COLOR_HEX,
+    colorMode: "auto",
+    mouseReveal: false,
   });
+  const systemDark = useSyncExternalStore(subscribeSystemDark, readSystemDark, () => false);
+  const isDark =
+    editorSettings.colorMode === "dark" ||
+    (editorSettings.colorMode === "auto" && systemDark);
 
   const updateEditorSettings = (patch: Partial<EditorSettings>) => {
     setEditorSettings((prev) => ({ ...prev, ...patch }));
@@ -62,6 +81,7 @@ export function EditorUiProvider({ children }: EditorUiProviderProps) {
       setOverrideViewMode,
       overrideViewMode,
       effectiveViewMode,
+      isDark,
     }),
     [
       documentTitle,
@@ -69,6 +89,7 @@ export function EditorUiProvider({ children }: EditorUiProviderProps) {
       editorSettings,
       overrideViewMode,
       effectiveViewMode,
+      isDark,
     ]
   );
 

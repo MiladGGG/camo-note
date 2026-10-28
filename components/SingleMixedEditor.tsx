@@ -3,11 +3,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createEditor, Descendant, Editor, Node, Range, Transforms } from "slate";
 import { HistoryEditor, withHistory } from "slate-history";
-import { Editable, RenderLeafProps, Slate, withReact } from "slate-react";
+import { Editable, ReactEditor, RenderLeafProps, Slate, withReact } from "slate-react";
 import TextManager from "@/src/buffer/TextManager";
 import ReplacementSet from "@/src/mask/ReplacementSet";
 import { loadWordSet } from "@/src/mask/WordSets";
 import { computeDisplayChunks, type DisplayChunk } from "@/src/view/DisplayComposer";
+import {
+  displayOffsetFromClientPoint,
+  MOUSE_REVEAL_WORD_RADIUS,
+  sameWordIndexSet,
+  wordIndexesAroundOffset,
+} from "@/src/view/mouseReveal";
+import {
+  DARK_MODE_MASKED_TEXT_COLOR,
+  revealedTextColorForScheme,
+} from "@/components/header/revealedTextColorPresets";
 import { useEditorUi } from "@/components/editor/EditorUiContext";
 import { useEditorText } from "@/components/editor/EditorTextContext";
 
@@ -44,15 +54,17 @@ function caretIndexToSelection(text: string, caretIndex: number): Range {
 }
 
 export default function SingleMixedEditor() {
-  const { editorSettings, effectiveViewMode, maskStyle } = useEditorUi();
+  const { editorSettings, effectiveViewMode, maskStyle, isDark } = useEditorUi();
   const { registerTextAccessors, registerCommandAccessors } = useEditorText();
-  const { contextRadius, fontStyle, fontSize, revealedTextColorHex } = editorSettings;
+  const { contextRadius, fontStyle, fontSize, revealedTextColorHex, mouseReveal } = editorSettings;
+  const revealedColor = revealedTextColorForScheme(revealedTextColorHex, isDark);
 
   const editor = useMemo(() => withReact(withHistory(createEditor())), []);
   const ENABLE_REAL_COLOR = true;
 
   const [cursorActive, setCursorActive] = useState<boolean>(true);
   const [overlayChunks, setOverlayChunks] = useState<DisplayChunk[]>([]);
+  const [mouseRevealWords, setMouseRevealWords] = useState<ReadonlySet<number> | null>(null);
 
   const managerRef = useRef<TextManager | null>(null);
   const previousDisplayTextRef = useRef<string>("");
@@ -62,6 +74,13 @@ export default function SingleMixedEditor() {
   const projectedTextRef = useRef<string>("");
   /** After focus, ignore caret-based reveal until Slate selection is synced into TextManager (avoids flashing the old line). */
   const revealSuppressedUntilCursorSyncRef = useRef(false);
+  const editableRef = useRef<HTMLDivElement | null>(null);
+  const mouseRevealRef = useRef<ReadonlySet<number> | null>(null);
+  mouseRevealRef.current = mouseReveal ? mouseRevealWords : null;
+  const mouseRevealKey =
+    mouseReveal && mouseRevealWords
+      ? [...mouseRevealWords].sort((a, b) => a - b).join(",")
+      : "";
 
   useEffect(() => {
     registerTextAccessors({
@@ -81,7 +100,22 @@ export default function SingleMixedEditor() {
       },
       redo: () => {
         HistoryEditor.redo(editor as HistoryEditor);
-      }
+      },
+      insertPlainText: (text: string) => {
+        const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+        if (!normalized) {
+          return false;
+        }
+        ReactEditor.focus(editor);
+        if (!editor.selection) {
+          Transforms.select(editor, Editor.end(editor, []));
+        }
+        const fragment = normalized.split("\n").map((line) => ({
+          children: [{ text: line }],
+        }));
+        Transforms.insertFragment(editor, fragment);
+        return true;
+      },
     });
 
     return () => {
@@ -117,9 +151,17 @@ export default function SingleMixedEditor() {
     }
   }
 
-  const renderLeaf = ({ attributes, children, leaf }: RenderLeafProps) => {
+  const renderLeaf = ({ attributes, children }: RenderLeafProps) => {
     return (
-      <span {...attributes} className="text-gray-700 selection:text-gray-700">
+      <span
+        {...attributes}
+        className={
+          isDark
+            ? "selection:text-[#f4f4f5]"
+            : "text-gray-700 selection:text-gray-700"
+        }
+        style={isDark ? { color: DARK_MODE_MASKED_TEXT_COLOR } : undefined}
+      >
         {children}
       </span>
     );
@@ -264,7 +306,8 @@ export default function SingleMixedEditor() {
       manager,
       effectiveViewMode,
       contextRadius,
-      revealForCaret
+      revealForCaret,
+      mouseRevealRef.current
     );
     const projectedText = projectedChunks.map((c) => c.text).join("");
 
@@ -296,7 +339,8 @@ export default function SingleMixedEditor() {
       manager,
       effectiveViewMode,
       contextRadius,
-      effectiveCursorActive
+      effectiveCursorActive,
+      mouseRevealRef.current
     );
     const projectedText = projectedChunks.map((c) => c.text).join("");
 
@@ -309,7 +353,7 @@ export default function SingleMixedEditor() {
     }
 
     prevContextRadiusRef.current = contextRadius;
-  }, [effectiveViewMode, contextRadius, cursorActive]);
+  }, [effectiveViewMode, contextRadius, cursorActive, mouseRevealKey]);
 
   // TextManager is created once; only maskStyle changes swap the ReplacementSet via
   // changeReplacementSet (which clears cache — intentional when the word list changes).
@@ -343,7 +387,8 @@ export default function SingleMixedEditor() {
         manager,
         effectiveViewMode,
         contextRadius,
-        cursorActive && !revealSuppressedUntilCursorSyncRef.current
+        cursorActive && !revealSuppressedUntilCursorSyncRef.current,
+        mouseRevealRef.current
       );
       const projectedText = projectedChunks.map((c) => c.text).join("");
 
@@ -362,17 +407,41 @@ export default function SingleMixedEditor() {
   }, [maskStyle]);
 
   return (
-    <div className="relative z-0 w-full max-w-[210mm] rounded-md bg-white shadow-[0_12px_40px_-12px_rgba(15,23,42,0.12),0_4px_16px_-4px_rgba(15,23,42,0.08)] ring-1 ring-gray-200/70">
+    <div
+      className="relative z-0 w-full max-w-[210mm] rounded-md bg-white shadow-[0_12px_40px_-12px_rgba(15,23,42,0.12),0_4px_16px_-4px_rgba(15,23,42,0.08)] ring-1 ring-gray-200/70 dark:bg-[#1c1c1f] dark:shadow-none dark:ring-white/10"
+      onMouseMove={(event) => {
+        if (!mouseReveal || event.buttons !== 0) {
+          return;
+        }
+        const editable = editableRef.current;
+        const manager = managerRef.current;
+        if (!editable || !manager) {
+          return;
+        }
+        const offset = displayOffsetFromClientPoint(editable, event.clientX, event.clientY);
+        const next =
+          offset == null
+            ? null
+            : wordIndexesAroundOffset(manager, offset, MOUSE_REVEAL_WORD_RADIUS);
+        setMouseRevealWords((current) => (sameWordIndexSet(current, next) ? current : next));
+      }}
+      onMouseLeave={() => setMouseRevealWords(null)}
+    >
       <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
         <div
           className="relative min-h-[297mm] whitespace-pre-wrap px-10 py-12 sm:px-14 sm:py-14 md:px-16 md:py-16 [line-height:1.62]"
           style={{ fontFamily, fontSize }}
         >
           <Editable
+            ref={editableRef}
             spellCheck={false}
             autoFocus
             placeholder="Start writing your masked document..."
-            className="block w-full min-h-[120px] whitespace-pre-wrap break-words text-gray-800 placeholder:text-gray-400 focus:outline-none caret-auto selection:bg-blue-100 selection:text-gray-900"
+            className={`block w-full min-h-[120px] whitespace-pre-wrap break-words focus:outline-none ${
+              isDark
+                ? "caret-[#f4f4f5] text-[#f4f4f5] placeholder:text-zinc-500 selection:bg-blue-900 selection:text-zinc-100"
+                : "caret-auto text-gray-800 placeholder:text-gray-400 selection:bg-blue-100 selection:text-gray-900"
+            }`}
             renderLeaf={renderLeaf}
             onFocus={() => {
               revealSuppressedUntilCursorSyncRef.current = true;
@@ -395,7 +464,7 @@ export default function SingleMixedEditor() {
                 <span
                   key={idx}
                   className={chunk.isReal ? "" : "text-transparent"}
-                  style={chunk.isReal ? { color: revealedTextColorHex } : undefined}
+                  style={chunk.isReal ? { color: revealedColor } : undefined}
                 >
                   {chunk.text}
                 </span>

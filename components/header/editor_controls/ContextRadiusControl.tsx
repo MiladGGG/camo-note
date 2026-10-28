@@ -1,12 +1,14 @@
 "use client";
 
 import { useEditorUi } from "@/components/editor/EditorUiContext";
-import { contextBarShell, editorControlLabel } from "./styles";
+import { CONTEXT_RADIUS_LINE, CONTEXT_RADIUS_NONE } from "@/src/view/contextRadius";
+import { contextBarShell, editorControlLabel, segmentButtonIdle, segmentTrack } from "./styles";
 
-const SEGMENTS: { label: number; radius: number }[] = [
-  { label: 1, radius: 0 },
-  { label: 3, radius: 2 },
-  { label: 5, radius: 5 },
+const SEGMENTS: { label: string; radius: number; title: string }[] = [
+  { label: "0", radius: CONTEXT_RADIUS_NONE, title: "Hide every word until reveal mode" },
+  { label: "1", radius: 0, title: "Reveal the word you are typing" },
+  { label: "3", radius: 2, title: "Reveal a few words around the caret" },
+  { label: "5", radius: 5, title: "Reveal a wider stretch around the caret" },
 ];
 
 export function ContextRadiusControl() {
@@ -16,15 +18,14 @@ export function ContextRadiusControl() {
   return (
     <div className={contextBarShell}>
       <span className={`${editorControlLabel} whitespace-nowrap`}>Context</span>
-      <div className="inline-flex h-8 overflow-hidden rounded-lg border border-gray-200/90 bg-white/90">
-        {SEGMENTS.map(({ label, radius }) => (
+      <div className={segmentTrack}>
+        {SEGMENTS.map(({ label, radius, title }) => (
           <button
             key={label}
             type="button"
+            title={title}
             className={`flex min-w-[1.75rem] items-center justify-center px-2 text-[10px] font-medium brightness-100 hover:brightness-[0.97] ${
-              contextRadius === radius
-                ? "bg-blue-600 text-white"
-                : "text-gray-600 hover:bg-gray-50"
+              contextRadius === radius ? "bg-blue-600 text-white" : segmentButtonIdle
             }`}
             onClick={() => updateEditorSettings({ contextRadius: radius })}
           >
@@ -33,10 +34,11 @@ export function ContextRadiusControl() {
         ))}
         <button
           type="button"
+          title="Reveal the whole line"
           className={`flex min-w-[1.75rem] items-center justify-center px-2 text-[10px] font-medium brightness-100 hover:brightness-[0.97] ${
-            contextRadius === -1 ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-50"
+            contextRadius === CONTEXT_RADIUS_LINE ? "bg-blue-600 text-white" : segmentButtonIdle
           }`}
-          onClick={() => updateEditorSettings({ contextRadius: -1 })}
+          onClick={() => updateEditorSettings({ contextRadius: CONTEXT_RADIUS_LINE })}
         >
           P
         </button>

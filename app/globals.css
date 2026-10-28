@@ -16,6 +16,11 @@
   color: rgb(17 24 39);
 }
 
+.dark ::selection {
+  background-color: rgb(30 58 138);
+  color: rgb(244 244 245);
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);

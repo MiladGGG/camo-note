@@ -10,6 +10,7 @@ type EditorTextAccessors = {
 type EditorCommandAccessors = {
   undo: () => void;
   redo: () => void;
+  insertPlainText: (text: string) => boolean;
 };
 
 type EditorTextContextValue = {
@@ -19,6 +20,7 @@ type EditorTextContextValue = {
   getMaskedText: () => string;
   undo: () => void;
   redo: () => void;
+  insertPlainText: (text: string) => boolean;
 };
 
 const EditorTextContext = createContext<EditorTextContextValue | null>(null);
@@ -60,6 +62,11 @@ export function EditorTextProvider({ children }: EditorTextProviderProps) {
   const redo = useCallback(() => {
     commandsRef.current?.redo();
   }, []);
+
+  const insertPlainText = useCallback((text: string) => {
+    return commandsRef.current?.insertPlainText(text) ?? false;
+  }, []);
+
   return (
     <EditorTextContext.Provider
       value={{
@@ -69,6 +76,7 @@ export function EditorTextProvider({ children }: EditorTextProviderProps) {
         getMaskedText,
         undo,
         redo,
+        insertPlainText,
       }}
     >
       {children}

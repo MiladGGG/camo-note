@@ -1,4 +1,6 @@
 export type ViewMode = "masked" | "real";
+/** Auto follows the system theme. Dark and light force that appearance. */
+export type ColorMode = "auto" | "dark" | "light";
 export type MaskStyle = "scientific" | "business" | "pirate" | "acedemic" | "legal" | "news" | "dramatic";
 export type FontStyle =
   | "inter"
@@ -16,6 +18,9 @@ export type EditorSettings = {
   contextRadius: number;
   fontStyle: FontStyle;
   fontSize: number;
-  /** Hex for overlay “real” / revealed text (one of `REVEALED_TEXT_COLOR_PRESETS`). */
+  /** Canonical light-mode hex. Dark mode uses that preset's `darkHex`. */
   revealedTextColorHex: string;
+  colorMode: ColorMode;
+  /** Reveal words around the pointer without clicking. */
+  mouseReveal: boolean;
 };

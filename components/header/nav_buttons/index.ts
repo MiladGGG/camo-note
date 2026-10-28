@@ -1,7 +1,6 @@
 "use client";
 
 import type { HeaderDropdownItem } from "@/components/header/HeaderMenuDropdown";
-import { fileButtons } from "./file_buttons";
 import { insertButtons } from "./insert_buttons";
 import { viewButtons } from "./view_buttons";
 
@@ -11,6 +10,7 @@ export type HeaderMenuConfig = {
 };
 
 export function getHeaderMenuConfigs(
+  fileButtons: HeaderDropdownItem[],
   maskingButtons: HeaderDropdownItem[],
   exportButtons: HeaderDropdownItem[],
   editButtons: HeaderDropdownItem[]
