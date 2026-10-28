@@ -18,7 +18,7 @@ export function ExportEncryptedButton() {
       return;
     }
 
-    const passcode = await askPasscode();
+    const passcode = await askPasscode({ confirm: true });
     if (passcode == null) {
       return;
     }
