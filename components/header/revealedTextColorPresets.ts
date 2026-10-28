@@ -8,17 +8,16 @@ export type RevealedTextColorPreset = {
 
 /**
  * Revealed-text colours. Light values sit near dark gray text.
- * Dark values are pale tints that sit near white text.
+ * Dark values are clearly tinted so they stay readable against near-white text.
  */
 export const REVEALED_TEXT_COLOR_PRESETS: readonly RevealedTextColorPreset[] = [
-  { hex: "#803708", darkHex: "#f3e6da", label: "Caramel" },
-  { hex: "#181b8f", darkHex: "#e4e6f6", label: "Navy" },
-  { hex: "#11632f", darkHex: "#e3f0e7", label: "Forest" },
-  { hex: "#870000", darkHex: "#f8e4e4", label: "Crimson" },
-  { hex: "#7c3aed", darkHex: "#efe8fb", label: "Violet" },
-  { hex: "#0d9488", darkHex: "#e2f3ef", label: "Teal" },
-  { hex: "#2563eb", darkHex: "#e4ecfc", label: "Blue" },
-  { hex: "#000000", darkHex: "#ffffff", label: "Dark" },
+  { hex: "#181b8f", darkHex: "#93c5fd", label: "Blue" },
+  { hex: "#000000", darkHex: "#cccccc", label: "Camo" },
+  { hex: "#803708", darkHex: "#f0b27a", label: "Caramel" },
+  { hex: "#11632f", darkHex: "#86efac", label: "Forest" },
+  { hex: "#870000", darkHex: "#fca5a5", label: "Crimson" },
+  { hex: "#7c3aed", darkHex: "#d8b4fe", label: "Violet" },
+  { hex: "#0d9488", darkHex: "#5eead4", label: "Teal" },
 ] as const;
 
 export const DEFAULT_REVEALED_TEXT_COLOR_HEX = REVEALED_TEXT_COLOR_PRESETS[0]!.hex;

@@ -26,20 +26,20 @@ type EditorUiContextValue = {
   setOverrideViewMode: (mode: ViewMode | null) => void;
   overrideViewMode: ViewMode | null;
   effectiveViewMode: ViewMode;
-  /** Resolved appearance, including Auto following the system theme. */
+  /** Night mode. Starts from the system theme when the page opens. */
   isDark: boolean;
+  setDarkMode: (enabled: boolean) => void;
 };
 
 const EditorUiContext = createContext<EditorUiContextValue | null>(null);
 
-function subscribeSystemDark(onStoreChange: () => void) {
-  const media = window.matchMedia("(prefers-color-scheme: dark)");
-  media.addEventListener("change", onStoreChange);
-  return () => media.removeEventListener("change", onStoreChange);
-}
-
 function readSystemDark() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+/** Night mode is sampled at launch and does not follow later system changes. */
+function subscribeLaunchTheme() {
+  return () => {};
 }
 
 type EditorUiProviderProps = {
@@ -56,13 +56,16 @@ export function EditorUiProvider({ children }: EditorUiProviderProps) {
     fontStyle: "inter" as FontStyle,
     fontSize: 14,
     revealedTextColorHex: DEFAULT_REVEALED_TEXT_COLOR_HEX,
-    colorMode: "auto",
     mouseReveal: false,
   });
-  const systemDark = useSyncExternalStore(subscribeSystemDark, readSystemDark, () => false);
-  const isDark =
-    editorSettings.colorMode === "dark" ||
-    (editorSettings.colorMode === "auto" && systemDark);
+  // Read once at launch. An empty subscription means later system changes do not retoggle it.
+  const systemDarkOnLaunch = useSyncExternalStore(
+    subscribeLaunchTheme,
+    readSystemDark,
+    () => false
+  );
+  const [darkOverride, setDarkOverride] = useState<boolean | null>(null);
+  const isDark = darkOverride ?? systemDarkOnLaunch;
 
   const updateEditorSettings = (patch: Partial<EditorSettings>) => {
     setEditorSettings((prev) => ({ ...prev, ...patch }));
@@ -82,6 +85,7 @@ export function EditorUiProvider({ children }: EditorUiProviderProps) {
       overrideViewMode,
       effectiveViewMode,
       isDark,
+      setDarkMode: setDarkOverride,
     }),
     [
       documentTitle,
