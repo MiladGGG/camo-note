@@ -1,12 +1,13 @@
 import TextManager from "../buffer/TextManager";
+import { CONTEXT_RADIUS_LINE, CONTEXT_RADIUS_NONE } from "./contextRadius";
 
 /**
  * Hover-to-reveal, kept in this file so it can be removed on its own.
  * To roll it back: delete this file and `MouseRevealControl`, then drop the
  * `mouseReveal` setting and the pointer handlers in `SingleMixedEditor`.
  * `computeDisplayChunks` already treats a missing extra-reveal set as off.
+ * The radius argument is the editor context radius, including the line and none modes.
  */
-export const MOUSE_REVEAL_WORD_RADIUS = 2;
 
 type Token = {
   index: number;
@@ -50,6 +51,10 @@ export function wordIndexesAroundOffset(
   offset: number,
   radius: number
 ): Set<number> {
+  if (radius === CONTEXT_RADIUS_NONE) {
+    return new Set();
+  }
+
   const tokens = tokensOf(manager);
   if (tokens.length === 0) {
     return new Set();
@@ -105,7 +110,8 @@ export function wordIndexesAroundOffset(
     if (!manager.isSameLine(anchor.start, token.start)) {
       continue;
     }
-    if (Math.abs(token.ordinal - anchor.ordinal) <= radius) {
+    const span = radius === CONTEXT_RADIUS_LINE ? Number.POSITIVE_INFINITY : radius;
+    if (Math.abs(token.ordinal - anchor.ordinal) <= span) {
       revealed.add(token.index);
     }
   }
@@ -139,6 +145,16 @@ function rangeFromPoint(doc: Document, x: number, y: number): Range | null {
  * Character offset in the editor's displayed text (newlines included)
  * for a viewport point. Returns null when the point is not over text.
  */
+export function selectClientPoint(editable: HTMLElement, x: number, y: number): void {
+  const range = rangeFromPoint(editable.ownerDocument, x, y);
+  if (!range || !editable.contains(range.startContainer)) {
+    return;
+  }
+  const selection = editable.ownerDocument.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+}
+
 export function displayOffsetFromClientPoint(
   editable: HTMLElement,
   x: number,
@@ -180,6 +196,35 @@ export function displayOffsetFromClientPoint(
   }
 
   return null;
+}
+
+/**
+ * Moving past the right edge continues at the left edge on the next line.
+ * Moving past the left edge continues at the right edge on the previous line.
+ */
+export function wrapPortalPoint(
+  x: number,
+  y: number,
+  left: number,
+  right: number,
+  lineHeight: number
+): { x: number; y: number } {
+  const width = right - left;
+  if (width <= 0 || lineHeight <= 0) {
+    return { x, y };
+  }
+
+  let nextX = x;
+  let nextY = y;
+  while (nextX >= right) {
+    nextX -= width;
+    nextY += lineHeight;
+  }
+  while (nextX < left) {
+    nextX += width;
+    nextY -= lineHeight;
+  }
+  return { x: nextX, y: nextY };
 }
 
 export function sameWordIndexSet(

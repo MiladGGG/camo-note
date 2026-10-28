@@ -21,6 +21,18 @@
   color: #d4d4d8;
 }
 
+.passcode-dialog {
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+}
+
+.passcode-dialog::backdrop {
+  background: rgb(15 23 42 / 0.45);
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);

@@ -10,9 +10,10 @@ import { loadWordSet } from "@/src/mask/WordSets";
 import { computeDisplayChunks, type DisplayChunk } from "@/src/view/DisplayComposer";
 import {
   displayOffsetFromClientPoint,
-  MOUSE_REVEAL_WORD_RADIUS,
   sameWordIndexSet,
+  selectClientPoint,
   wordIndexesAroundOffset,
+  wrapPortalPoint,
 } from "@/src/view/mouseReveal";
 import {
   DARK_MODE_MASKED_TEXT_COLOR,
@@ -58,6 +59,9 @@ export default function SingleMixedEditor() {
   const { registerTextAccessors, registerCommandAccessors } = useEditorText();
   const { contextRadius, fontStyle, fontSize, revealedTextColorHex, mouseReveal } = editorSettings;
   const revealedColor = revealedTextColorForScheme(revealedTextColorHex, isDark);
+  const pointerCursor = mouseReveal
+    ? `url("${isDark ? "/cursors/pointer-dark.png" : "/cursors/pointer-light.png"}") 16 16, text`
+    : undefined;
 
   const editor = useMemo(() => withReact(withHistory(createEditor())), []);
   const ENABLE_REAL_COLOR = true;
@@ -76,11 +80,174 @@ export default function SingleMixedEditor() {
   const revealSuppressedUntilCursorSyncRef = useRef(false);
   const editableRef = useRef<HTMLDivElement | null>(null);
   const mouseRevealRef = useRef<ReadonlySet<number> | null>(null);
+  const pointerOffsetRef = useRef<number | null>(null);
+  const portalCursorRef = useRef<HTMLDivElement>(null);
+  const portalPointRef = useRef<{ x: number; y: number } | null>(null);
+  const portalSessionRef = useRef(0);
+  const contextRadiusRef = useRef(contextRadius);
+  contextRadiusRef.current = contextRadius;
   mouseRevealRef.current = mouseReveal ? mouseRevealWords : null;
   const mouseRevealKey =
     mouseReveal && mouseRevealWords
       ? [...mouseRevealWords].sort((a, b) => a - b).join(",")
       : "";
+
+  useEffect(() => {
+    if (!mouseReveal) {
+      return;
+    }
+    const offset = pointerOffsetRef.current;
+    const manager = managerRef.current;
+    if (offset == null || !manager) {
+      return;
+    }
+    const next = wordIndexesAroundOffset(manager, offset, contextRadius);
+    setMouseRevealWords((current) => (sameWordIndexSet(current, next) ? current : next));
+  }, [contextRadius, mouseReveal]);
+
+  useEffect(() => {
+    const cursor = portalCursorRef.current;
+    const hideCursor = () => {
+      portalPointRef.current = null;
+      if (cursor) {
+        cursor.style.display = "none";
+      }
+    };
+
+    if (!mouseReveal) {
+      if (document.pointerLockElement?.id === "camo-sheet") {
+        document.exitPointerLock();
+      }
+      hideCursor();
+      return;
+    }
+
+    const showCursor = (x: number, y: number) => {
+      const node = portalCursorRef.current;
+      if (!node) {
+        return;
+      }
+      node.style.display = "block";
+      node.style.transform = `translate3d(${x - 16}px, ${y - 16}px, 0)`;
+    };
+
+    const revealAt = (x: number, y: number) => {
+      const editable = editableRef.current;
+      const manager = managerRef.current;
+      if (!editable || !manager) {
+        return;
+      }
+      const offset = displayOffsetFromClientPoint(editable, x, y);
+      pointerOffsetRef.current = offset;
+      const next =
+        offset == null ? null : wordIndexesAroundOffset(manager, offset, contextRadiusRef.current);
+      setMouseRevealWords((current) => (sameWordIndexSet(current, next) ? current : next));
+    };
+
+    const startingPoint = () => {
+      const editable = editableRef.current;
+      const sheet = document.getElementById("camo-sheet");
+      const selection = document.getSelection();
+      if (
+        editable &&
+        selection &&
+        selection.rangeCount > 0 &&
+        editable.contains(selection.anchorNode)
+      ) {
+        const rect = selection.getRangeAt(0).getBoundingClientRect();
+        if (rect.left || rect.top) {
+          return { x: rect.left, y: rect.top + Math.max(rect.height, 1) / 2 };
+        }
+      }
+      const bounds = sheet?.getBoundingClientRect();
+      return { x: (bounds?.left ?? 0) + 24, y: (bounds?.top ?? 0) + 48 };
+    };
+
+    const onLockChange = () => {
+      if (document.pointerLockElement?.id !== "camo-sheet") {
+        hideCursor();
+        return;
+      }
+      const point = startingPoint();
+      portalPointRef.current = point;
+      showCursor(point.x, point.y);
+      revealAt(point.x, point.y);
+    };
+
+    const onMove = (event: MouseEvent) => {
+      if (document.pointerLockElement?.id !== "camo-sheet") {
+        return;
+      }
+      const sheet = document.getElementById("camo-sheet");
+      const editable = editableRef.current;
+      const point = portalPointRef.current;
+      if (!sheet || !editable || !point) {
+        return;
+      }
+
+      const sheetBounds = sheet.getBoundingClientRect();
+      const lineBounds = editable.getBoundingClientRect();
+      const lineHeight = parseFloat(getComputedStyle(editable).lineHeight) || 22;
+      point.x += event.movementX;
+      point.y += event.movementY;
+      const wrapped = wrapPortalPoint(point.x, point.y, lineBounds.left, lineBounds.right, lineHeight);
+      point.x = wrapped.x;
+      point.y = wrapped.y;
+
+      if (point.y < sheetBounds.top - lineHeight || point.y > sheetBounds.bottom + lineHeight) {
+        document.exitPointerLock();
+        return;
+      }
+
+      if (point.y > window.innerHeight - 28) {
+        const shift = point.y - (window.innerHeight - 80);
+        window.scrollBy(0, shift);
+        point.y -= shift;
+      } else if (point.y < 28) {
+        const shift = point.y - 80;
+        window.scrollBy(0, shift);
+        point.y -= shift;
+      }
+
+      showCursor(point.x, point.y);
+      revealAt(point.x, point.y);
+    };
+
+    const onMouseDown = (event: MouseEvent) => {
+      if (document.pointerLockElement?.id !== "camo-sheet") {
+        return;
+      }
+      const point = portalPointRef.current;
+      const editable = editableRef.current;
+      if (!point || !editable) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      editable.focus();
+      selectClientPoint(editable, point.x, point.y);
+    };
+
+    const session = ++portalSessionRef.current;
+    document.addEventListener("pointerlockchange", onLockChange);
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mousedown", onMouseDown, true);
+    if (document.pointerLockElement?.id === "camo-sheet") {
+      onLockChange();
+    }
+
+    return () => {
+      document.removeEventListener("pointerlockchange", onLockChange);
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mousedown", onMouseDown, true);
+      const ended = session;
+      queueMicrotask(() => {
+        if (portalSessionRef.current === ended && document.pointerLockElement?.id === "camo-sheet") {
+          document.exitPointerLock();
+        }
+      });
+    };
+  }, [mouseReveal]);
 
   useEffect(() => {
     registerTextAccessors({
@@ -408,9 +575,17 @@ export default function SingleMixedEditor() {
 
   return (
     <div
+      id="camo-sheet"
       className="relative z-0 w-full max-w-[210mm] rounded-md bg-white shadow-[0_12px_40px_-12px_rgba(15,23,42,0.12),0_4px_16px_-4px_rgba(15,23,42,0.08)] ring-1 ring-gray-200/70 dark:bg-[#1c1c1f] dark:shadow-none dark:ring-white/10"
+      style={pointerCursor ? { cursor: pointerCursor } : undefined}
+      onMouseUp={() => {
+        if (!mouseReveal || document.pointerLockElement) {
+          return;
+        }
+        void Promise.resolve(document.getElementById("camo-sheet")?.requestPointerLock()).catch(() => {});
+      }}
       onMouseMove={(event) => {
-        if (!mouseReveal || event.buttons !== 0) {
+        if (!mouseReveal || event.buttons !== 0 || document.pointerLockElement) {
           return;
         }
         const editable = editableRef.current;
@@ -419,14 +594,28 @@ export default function SingleMixedEditor() {
           return;
         }
         const offset = displayOffsetFromClientPoint(editable, event.clientX, event.clientY);
+        pointerOffsetRef.current = offset;
         const next =
           offset == null
             ? null
-            : wordIndexesAroundOffset(manager, offset, MOUSE_REVEAL_WORD_RADIUS);
+            : wordIndexesAroundOffset(manager, offset, contextRadius);
         setMouseRevealWords((current) => (sameWordIndexSet(current, next) ? current : next));
       }}
-      onMouseLeave={() => setMouseRevealWords(null)}
+      onMouseLeave={() => {
+        pointerOffsetRef.current = null;
+        setMouseRevealWords(null);
+      }}
     >
+      {mouseReveal ? (
+        <div
+          ref={portalCursorRef}
+          aria-hidden
+          className="pointer-events-none fixed left-0 top-0 z-50 hidden h-8 w-8 bg-contain bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url("${isDark ? "/cursors/pointer-dark.png" : "/cursors/pointer-light.png"}")`,
+          }}
+        />
+      ) : null}
       <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
         <div
           className="relative min-h-[297mm] whitespace-pre-wrap px-10 py-12 sm:px-14 sm:py-14 md:px-16 md:py-16 [line-height:1.62]"
@@ -437,6 +626,7 @@ export default function SingleMixedEditor() {
             spellCheck={false}
             autoFocus
             placeholder="Start writing your masked document..."
+            style={pointerCursor ? { cursor: pointerCursor } : undefined}
             className={`block w-full min-h-[120px] whitespace-pre-wrap break-words focus:outline-none ${
               isDark
                 ? "caret-[#d4d4d8] text-[#d4d4d8] placeholder:text-zinc-500 selection:bg-blue-900 selection:text-[#d4d4d8]"

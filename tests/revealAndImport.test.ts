@@ -5,9 +5,9 @@ import { rtfToPlainText } from "../src/import/rtfToPlainText";
 import ReplacementSet from "../src/mask/ReplacementSet";
 import { loadWordSet } from "../src/mask/WordSets";
 import TextManager from "../src/buffer/TextManager";
-import { CONTEXT_RADIUS_NONE } from "../src/view/contextRadius";
+import { CONTEXT_RADIUS_LINE, CONTEXT_RADIUS_NONE } from "../src/view/contextRadius";
 import { computeDisplayChunks } from "../src/view/DisplayComposer";
-import { wordIndexesAroundOffset } from "../src/view/mouseReveal";
+import { wordIndexesAroundOffset, wrapPortalPoint } from "../src/view/mouseReveal";
 
 let textManager: TextManager;
 
@@ -68,6 +68,20 @@ describe("pointer reveal", () => {
     expect(revealed.map((chunk) => chunk.text)).toEqual(["Hello"]);
   });
 
+  test("follows the context radius, including a whole line and none", () => {
+    textManager.insert("Hello brave world\naway");
+    const hello = wordIndexesAroundOffset(textManager, 0, 2);
+    const line = wordIndexesAroundOffset(textManager, 0, CONTEXT_RADIUS_LINE);
+    const none = wordIndexesAroundOffset(textManager, 0, CONTEXT_RADIUS_NONE);
+    const revealed = (indexes: Set<number>) =>
+      computeDisplayChunks(textManager, "masked", CONTEXT_RADIUS_NONE, false, indexes)
+        .filter((chunk) => chunk.isReal && chunk.text !== " " && chunk.text !== "\n")
+        .map((chunk) => chunk.text);
+    expect(revealed(hello)).toEqual(["Hello", "brave", "world"]);
+    expect(revealed(line)).toEqual(["Hello", "brave", "world"]);
+    expect(revealed(none)).toEqual([]);
+  });
+
   test("does not reveal words on another line", () => {
     textManager.insert("Hello brave\nworld");
     const worldOffset = "Hello brave\n".length;
@@ -81,6 +95,20 @@ describe("pointer reveal", () => {
     );
     const revealed = chunks.filter((chunk) => chunk.isReal && chunk.text !== " " && chunk.text !== "\n");
     expect(revealed.map((chunk) => chunk.text)).toEqual(["world"]);
+  });
+});
+
+describe("pointer portal", () => {
+  test("wraps off the right edge onto the next line", () => {
+    expect(wrapPortalPoint(210, 40, 0, 200, 22)).toEqual({ x: 10, y: 62 });
+  });
+
+  test("wraps off the left edge onto the previous line", () => {
+    expect(wrapPortalPoint(-15, 40, 0, 200, 22)).toEqual({ x: 185, y: 18 });
+  });
+
+  test("leaves a point inside the page where it is", () => {
+    expect(wrapPortalPoint(40, 40, 0, 200, 22)).toEqual({ x: 40, y: 40 });
   });
 });
 

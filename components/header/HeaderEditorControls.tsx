@@ -13,11 +13,13 @@ export default function HeaderEditorControls() {
     <div className="mr-1 hidden max-w-full flex-wrap items-center justify-end gap-2 sm:flex">
       <ViewModeControl />
       <MouseRevealControl />
-      <DarkModeControl />
       <RevealedColourControl />
       <ContextRadiusControl />
       <FontSelectControl />
       <SizeSelectControl />
+      <div className="ml-4">
+        <DarkModeControl />
+      </div>
     </div>
   );
 }

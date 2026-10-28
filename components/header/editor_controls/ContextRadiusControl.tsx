@@ -9,6 +9,7 @@ const SEGMENTS: { label: string; radius: number; title: string }[] = [
   { label: "1", radius: 0, title: "Reveal the word you are typing" },
   { label: "3", radius: 2, title: "Reveal a few words around the caret" },
   { label: "5", radius: 5, title: "Reveal a wider stretch around the caret" },
+  { label: "10", radius: 10, title: "Reveal a wider stretch around the caret" },
 ];
 
 export function ContextRadiusControl() {

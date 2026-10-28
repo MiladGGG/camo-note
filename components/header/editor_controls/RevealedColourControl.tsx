@@ -27,14 +27,16 @@ export function RevealedColourControl() {
     };
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
         setOpen(false);
       }
     };
     document.addEventListener("pointerdown", onPointerDown, true);
-    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keydown", onKeyDown, true);
     return () => {
       document.removeEventListener("pointerdown", onPointerDown, true);
-      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("keydown", onKeyDown, true);
     };
   }, [open]);
 

@@ -2,6 +2,7 @@
 
 import HeaderMenuDropdown from "./HeaderMenuDropdown";
 import { getHeaderMenuConfigs } from "@/components/header/nav_buttons";
+import { ExportEncryptedButton } from "@/components/header/ExportEncryptedButton";
 import { useExportButtons } from "@/components/header/nav_buttons/export_buttons";
 import { useFileButtons } from "@/components/header/nav_buttons/file_buttons";
 import { useMaskingButtons } from "@/components/header/nav_buttons/masking_buttons";
@@ -28,6 +29,7 @@ export default function HeaderNavMenus() {
           items={menu.items}
         />
       ))}
+      <ExportEncryptedButton />
     </nav>
   );
 }
