@@ -157,7 +157,7 @@ export default function SingleMixedEditor() {
         {...attributes}
         className={
           isDark
-            ? "selection:text-[#f4f4f5]"
+            ? "selection:text-[#d4d4d8]"
             : "text-gray-700 selection:text-gray-700"
         }
         style={isDark ? { color: DARK_MODE_MASKED_TEXT_COLOR } : undefined}
@@ -439,7 +439,7 @@ export default function SingleMixedEditor() {
             placeholder="Start writing your masked document..."
             className={`block w-full min-h-[120px] whitespace-pre-wrap break-words focus:outline-none ${
               isDark
-                ? "caret-[#f4f4f5] text-[#f4f4f5] placeholder:text-zinc-500 selection:bg-blue-900 selection:text-zinc-100"
+                ? "caret-[#d4d4d8] text-[#d4d4d8] placeholder:text-zinc-500 selection:bg-blue-900 selection:text-[#d4d4d8]"
                 : "caret-auto text-gray-800 placeholder:text-gray-400 selection:bg-blue-100 selection:text-gray-900"
             }`}
             renderLeaf={renderLeaf}
