@@ -29,6 +29,7 @@ export function useMaskingButtons(): HeaderDropdownItem[] {
       toast(`Mask style changed to ${opt.label}`, {
         icon: '🕶️',
         position: "top-center",
+        duration: 2000,
       });
     },
   }));
