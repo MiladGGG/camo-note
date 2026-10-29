@@ -100,17 +100,28 @@ export function caretAfterReadJump(
 
   if (direction > 0) {
     const newline = text.indexOf("\n", caret);
+    // Land on the last character of this line first, so the ending stays in view.
+    const beforeNewline = newline > 0 ? newline - 1 : -1;
+    if (newline !== -1 && caret >= beforeNewline && caret <= newline) {
+      for (const start of starts) {
+        if (start > newline) {
+          return start;
+        }
+      }
+      return null;
+    }
+    const stopBeforeBreak = beforeNewline > caret;
     let crossed = 0;
     let landing = caret;
     for (let i = current + 1; i < starts.length && crossed < length; i++) {
-      if (newline !== -1 && starts[i]! > newline) {
-        return newline + 1;
+      if (stopBeforeBreak && starts[i]! > newline) {
+        return beforeNewline;
       }
       landing = starts[i]!;
       crossed++;
     }
-    if (crossed < length && newline !== -1) {
-      return newline + 1 === caret ? null : newline + 1;
+    if (stopBeforeBreak && crossed < length) {
+      return beforeNewline;
     }
     return landing === caret ? null : landing;
   }

@@ -42,9 +42,61 @@ describe("read jump", () => {
   test("a newline stops the jump early", () => {
     textManager.insert("a b c d\ne f g h i j k l m n o");
     const lineStart = "a b c d\n".length;
-    expect(caretAfterReadJump(textManager, 0, 5, 1)).toBe(lineStart);
+    const beforeNewline = "a b c d".length - 1;
+    expect(caretAfterReadJump(textManager, 0, 5, 1)).toBe(beforeNewline);
+    expect(caretAfterReadJump(textManager, beforeNewline, 5, 1)).toBe(lineStart);
     expect(caretAfterReadJump(textManager, lineStart, 5, -1)).toBe("a b c ".length);
     expect(caretAfterReadJump(textManager, "a b c d\ne f ".length, 5, -1)).toBe(lineStart);
+  });
+
+  test("continuous right arrows cover every word across lines", () => {
+    const raw = "aa bb cc dd\nee ff gg hh ii jj kk ll mm nn oo pp qq rr ss tt";
+    textManager.insert(raw);
+    const radius = 5;
+    const starts: number[] = [];
+    let abs = 0;
+    for (const part of raw.split(/(\s+)/)) {
+      if (part.length === 0) {
+        continue;
+      }
+      if (/^\s+$/.test(part)) {
+        abs += part.length;
+        continue;
+      }
+      starts.push(abs);
+      abs += part.length;
+    }
+
+    const covered = new Set<number>();
+    const visit = (caret: number) => {
+      const lineStart = raw.lastIndexOf("\n", Math.max(0, caret - 1)) + 1;
+      const lineBreak = raw.indexOf("\n", caret);
+      const lineEnd = lineBreak === -1 ? raw.length : lineBreak;
+      let at = 0;
+      for (let i = 0; i < starts.length; i++) {
+        if (starts[i]! <= caret) {
+          at = i;
+        }
+      }
+      for (let i = 0; i < starts.length; i++) {
+        const start = starts[i]!;
+        if (start >= lineStart && start < lineEnd && Math.abs(i - at) <= radius) {
+          covered.add(i);
+        }
+      }
+    };
+
+    let caret = 0;
+    visit(caret);
+    for (let step = 0; step < 40; step++) {
+      const next = caretAfterReadJump(textManager, caret, radius, 1);
+      if (next == null || next === caret) {
+        break;
+      }
+      caret = next;
+      visit(caret);
+    }
+    expect(covered.size).toBe(starts.length);
   });
 
   test("line context jumps to the next line", () => {
