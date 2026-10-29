@@ -2,11 +2,7 @@ import TextManager from "../buffer/TextManager";
 import { CONTEXT_RADIUS_LINE, CONTEXT_RADIUS_NONE } from "./contextRadius";
 
 /**
- * Hover-to-reveal, kept in this file so it can be removed on its own.
- * To roll it back: delete this file and `MouseRevealControl`, then drop the
- * `mouseReveal` setting and the pointer handlers in `SingleMixedEditor`.
- * `computeDisplayChunks` already treats a missing extra-reveal set as off.
- * The radius argument is the editor context radius, including the line and none modes.
+ * Word-index helpers kept for the typing reveal tests.
  */
 
 type Token = {

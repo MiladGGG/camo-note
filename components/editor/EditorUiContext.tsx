@@ -56,7 +56,7 @@ export function EditorUiProvider({ children }: EditorUiProviderProps) {
     fontStyle: "inter" as FontStyle,
     fontSize: 14,
     revealedTextColorHex: DEFAULT_REVEALED_TEXT_COLOR_HEX,
-    mouseReveal: false,
+    readMode: false,
   });
   // Read once at launch. An empty subscription means later system changes do not retoggle it.
   const systemDarkOnLaunch = useSyncExternalStore(

@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import SingleMixedEditor from "@/components/SingleMixedEditor";
 import DocsHeader from "@/components/DocsHeader";
 import SiteFooter from "@/components/SiteFooter";
-import { engagePointerMode } from "@/components/header/editor_controls/MouseRevealControl";
 import { EditorUiProvider, useEditorUi } from "@/components/editor/EditorUiContext";
 import { stepContextRadius } from "@/src/view/contextRadius";
 import { EditorTextProvider, useEditorText } from "@/components/editor/EditorTextContext";
@@ -78,9 +77,7 @@ function HomeContent() {
         }
         if (e.key === "Escape" && !e.repeat && !isTextField(e.target)) {
           e.preventDefault();
-          const next = !editorSettings.mouseReveal;
-          updateEditorSettings({ mouseReveal: next });
-          engagePointerMode(next);
+          updateEditorSettings({ readMode: !editorSettings.readMode });
         }
       }}
       onKeyUp={(e) => {

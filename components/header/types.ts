@@ -18,6 +18,6 @@ export type EditorSettings = {
   fontSize: number;
   /** Canonical light-mode hex. Dark mode uses that preset's `darkHex`. */
   revealedTextColorHex: string;
-  /** Reveal words around the pointer without clicking. */
-  mouseReveal: boolean;
+  /** Replace pointer reading with chunk jumps. */
+  readMode: boolean;
 };
